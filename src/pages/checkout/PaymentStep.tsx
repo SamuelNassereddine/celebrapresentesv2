@@ -43,8 +43,8 @@ const PaymentStep = () => {
       // Format the amount properly - ensure it has 2 decimal places
       const formattedAmount = totalPrice.toFixed(2);
       
-      // Create the QRCodePix instance
-      const qrCodePix = QRCodePix({
+      // Create the QrCodePix instance - fixed capitalization here
+      const qrCodePix = QrCodePix({
         version: '01',
         key: storeSettings.pixKey,
         name: storeSettings.pixReceiverName,
