@@ -72,6 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error('🔄 AuthContext: Error initializing auth:', error);
+        setUser(null);
+        setRole(null);
       } finally {
         setLoading(false);
       }
@@ -92,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result = await signInAdmin(email, password);
       console.log('🔐 AuthContext.signIn: Sign in successful, role:', result.role);
+      setUser(result.user);
       setRole(result.role);
       toast.success('Login realizado com sucesso');
     } catch (error: any) {
