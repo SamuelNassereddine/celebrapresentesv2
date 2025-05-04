@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -8,6 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { qrcode } from 'qrcode-pix';
+import { Textarea } from '@/components/ui/textarea';
 
 // Store settings - ideally this would come from the database
 const storeSettings = {
@@ -18,46 +19,21 @@ const storeSettings = {
   whatsappNumber: '5511987965672'
 };
 
-// Função simplificada para gerar o código PIX
-function generateStaticPixCode(
-  key: string, 
-  name: string, 
-  city: string, 
-  value: number, 
-  message: string
-): string {
-  // Formato básico para um código PIX estático
-  // Esta é uma implementação simplificada - em produção seria necessário calcular o CRC e formatar de acordo com as especificações do Banco Central
-  const sanitizedKey = key.replace(/[^a-zA-Z0-9]/g, '');
-  const sanitizedName = name.substring(0, 25).toUpperCase();
-  const sanitizedCity = city.substring(0, 15).toUpperCase();
-  const valueStr = value.toFixed(2);
-  
-  return `00020126330014BR.GOV.BCB.PIX01${sanitizedKey.length}${sanitizedKey}0210${message}52040000530398654${valueStr}5802BR59${sanitizedName}60${sanitizedCity}62070503***63046B13`;
-}
-
-// Função para gerar base64 QR Code (simulado para exemplo)
-function generateQrCodeImageUrl(pixCode: string): string {
-  // Note: Em um ambiente real, você usaria uma biblioteca de QR code ou uma API
-  // Como solução temporária, vamos usar um serviço gratuito de geração de QR code
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCode)}`;
-}
-
 const PaymentStep = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'whatsapp'>('pix');
   const [pixCode, setPixCode] = useState('');
-  const [pixQRCode, setPixQRCode] = useState<string | null>(null);
-  const [orderNumber, setOrderNumber] = useState('');
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
+  const [copiado, setCopiado] = useState(false);
   
   useEffect(() => {
     // Generate a random order number
     const randomOrderNum = Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(randomOrderNum.toString());
     
-    // Generate PIX code and QR code
+    // Generate PIX code
     if (totalPrice > 0) {
       generatePixCode(randomOrderNum.toString());
     }
@@ -75,29 +51,27 @@ const PaymentStep = () => {
       }
       
       console.log("Generating PIX code with parameters:", {
+        version: '01',
         key: storeSettings.pixKey,
         name: storeSettings.pixReceiverName,
         city: storeSettings.pixCity,
         value: amount,
-        message: `Pedido #${txid}`
+        transactionId: `PEDIDO-${txid}`,
       });
       
-      // Gera o código PIX usando a função simplificada
-      const pixCodeText = generateStaticPixCode(
-        storeSettings.pixKey,
-        storeSettings.pixReceiverName,
-        storeSettings.pixCity,
-        amount,
-        `Pedido #${txid}`
-      );
+      // Gera o código PIX usando a biblioteca qrcode-pix
+      const pix = qrcode({
+        version: '01',
+        key: storeSettings.pixKey,
+        name: storeSettings.pixReceiverName,
+        city: storeSettings.pixCity,
+        value: amount,
+        transactionId: `PEDIDO-${txid}`,
+      });
       
-      console.log("PIX Payload:", pixCodeText);
-      setPixCode(pixCodeText);
-      
-      // Gera o QR code como URL usando um serviço
-      const qrCodeUrl = generateQrCodeImageUrl(pixCodeText);
-      setPixQRCode(qrCodeUrl);
-      console.log("QR Code URL generated:", qrCodeUrl);
+      const pixPayload = pix.payload();
+      console.log("PIX Payload:", pixPayload);
+      setPixCode(pixPayload);
       
     } catch (error) {
       console.error('Erro ao gerar código PIX:', error);
@@ -111,9 +85,11 @@ const PaymentStep = () => {
     setPaymentMethod(method);
   };
   
-  const handleCopyPixCode = () => {
-    navigator.clipboard.writeText(pixCode);
+  const handleCopyPixCode = async () => {
+    await navigator.clipboard.writeText(pixCode);
+    setCopiado(true);
     toast.success('Código PIX copiado para a área de transferência!');
+    setTimeout(() => setCopiado(false), 2000);
   };
   
   // Get all checkout data
@@ -179,8 +155,6 @@ const PaymentStep = () => {
     const message = formatWhatsAppMessage();
     const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
     
-    // In a production app, you'd save the order to the database here
-    
     // Clear the cart and checkout data
     clearCart();
     localStorage.removeItem('checkoutIdentification');
@@ -195,8 +169,6 @@ const PaymentStep = () => {
   };
   
   const handlePixCheckout = () => {
-    // In a production app, you'd save the order to the database here
-    
     toast.success('Pedido confirmado! Aguardando confirmação do pagamento...');
     
     // Clear the cart and checkout data after a delay to simulate payment confirmation
@@ -273,7 +245,7 @@ const PaymentStep = () => {
               <div>
                 <h3 className="text-lg font-medium mb-3">Pagamento via PIX</h3>
                 <p className="text-gray-600 mb-4">
-                  Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX para realizar o pagamento.
+                  Utilize o código PIX abaixo para realizar o pagamento.
                 </p>
                 
                 {totalPrice <= 0 && (
@@ -295,46 +267,28 @@ const PaymentStep = () => {
                         O valor do pedido deve ser maior que zero para gerar um código PIX.
                       </div>
                     ) : (
-                      <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                        {/* QR Code */}
-                        {pixQRCode && (
-                          <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                            <div className="bg-white p-3 rounded-md shadow-sm">
-                              <img 
-                                src={pixQRCode} 
-                                alt="QR Code PIX" 
-                                className="w-40 h-40"
-                                onError={(e) => {
-                                  console.error("Failed to load QR Code image");
-                                  e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Crect width='160' height='160' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' text-anchor='middle' dominant-baseline='middle'%3EErro ao carregar QR Code%3C/text%3E%3C/svg%3E";
-                                }}
-                              />
-                            </div>
-                            <p className="text-sm text-gray-500">Escaneie com o app do seu banco</p>
-                          </div>
-                        )}
-                        
-                        {/* PIX Copia e Cola */}
-                        <div className="flex-grow w-full">
-                          <h4 className="font-medium mb-2">PIX Copia e Cola</h4>
-                          <div className="bg-white p-3 rounded-md mb-4 border flex">
-                            <div className="flex-grow overflow-auto whitespace-nowrap font-mono text-sm p-2 text-gray-700">
-                              {pixCode || 'Código PIX não disponível'}
-                            </div>
-                            <Button 
-                              onClick={handleCopyPixCode}
-                              variant="outline"
-                              size="sm"
-                              className="flex-shrink-0 ml-2"
-                              disabled={!pixCode}
-                            >
-                              Copiar
-                            </Button>
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            Copie o código e cole no app do seu banco para realizar o pagamento via PIX.
-                          </p>
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <label className="font-medium text-gray-800 mb-2 block">
+                            PIX Copia e Cola:
+                          </label>
+                          <Textarea
+                            readOnly
+                            value={pixCode || 'Código PIX não disponível'}
+                            className="w-full p-2 border rounded text-sm font-mono resize-none bg-white"
+                            rows={4}
+                          />
                         </div>
+                        <Button 
+                          onClick={handleCopyPixCode}
+                          className="w-full md:w-auto"
+                          disabled={!pixCode}
+                        >
+                          {copiado ? "Código copiado!" : "Copiar código Pix"}
+                        </Button>
+                        <p className="text-sm text-gray-500 mt-2">
+                          Copie o código e cole no app do seu banco para realizar o pagamento via PIX.
+                        </p>
                       </div>
                     )}
                   </CardContent>
