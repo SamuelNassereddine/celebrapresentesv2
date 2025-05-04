@@ -106,9 +106,10 @@ const DeliveryStep = () => {
       const cleanedValue = value.replace(/\D/g, '');
       const formattedCep = cleanedValue.replace(/^(\d{5})(\d{3})$/, '$1-$2');
       
+      // Fixed: Ensure we're only updating with a string value
       setFormData(prev => ({
         ...prev,
-        [name]: cleanedValue.length <= 8 ? formattedCep : prev[name as keyof typeof prev]
+        cep: cleanedValue.length <= 8 ? formattedCep : prev.cep
       }));
       
       // If we have 8 digits, try to fetch address automatically
