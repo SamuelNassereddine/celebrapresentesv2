@@ -20,6 +20,7 @@ const PaymentStep = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const [orderNumber, setOrderNumber] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     // Generate a random order number
@@ -78,7 +79,7 @@ const PaymentStep = () => {
     
     // Items
     message += `*Itens do Pedido*\n`;
-    data.items.forEach((item: any) => {
+    data.items.forEach((item) => {
       message += `${item.quantity}x ${item.title} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price * item.quantity)}\n`;
     });
     message += `\n*Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.totalPrice)}*`;
@@ -114,7 +115,10 @@ const PaymentStep = () => {
         .select()
         .single();
       
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Error saving order to database:', orderError);
+        throw orderError;
+      }
       
       // Insert order items
       if (orderData) {
@@ -130,7 +134,10 @@ const PaymentStep = () => {
           .from('order_items')
           .insert(orderItems);
         
-        if (itemsError) throw itemsError;
+        if (itemsError) {
+          console.error('Error saving order items:', itemsError);
+          throw itemsError;
+        }
       }
       
       return orderData;
@@ -141,7 +148,11 @@ const PaymentStep = () => {
   };
   
   const handleWhatsAppCheckout = async () => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
+      
       // Save order to database first
       await saveOrderToDatabase();
       
@@ -162,6 +173,8 @@ const PaymentStep = () => {
     } catch (error) {
       toast.error('Erro ao finalizar pedido. Tente novamente.');
       console.error('Error during checkout:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -202,8 +215,9 @@ const PaymentStep = () => {
                     <Button 
                       onClick={handleWhatsAppCheckout}
                       className="w-full md:w-auto"
+                      disabled={isSubmitting}
                     >
-                      Finalizar pelo WhatsApp
+                      {isSubmitting ? 'Processando...' : 'Finalizar pelo WhatsApp'}
                     </Button>
                   </div>
                 </CardContent>
@@ -215,6 +229,7 @@ const PaymentStep = () => {
             <Button 
               variant="outline"
               onClick={() => navigate('/checkout/3')}
+              disabled={isSubmitting}
             >
               Voltar
             </Button>
