@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import qrcode from 'qrcode-pix';
+import QRCodePix from 'qrcode-pix';
 
 // Store settings - ideally this would come from the database
 const storeSettings = {
@@ -61,7 +61,7 @@ const PaymentStep = () => {
       });
       
       // Gera o código PIX usando a biblioteca qrcode-pix
-      const pix = qrcode({
+      const pix = new QRCodePix({
         version: '01',
         key: storeSettings.pixKey,
         name: storeSettings.pixReceiverName,
