@@ -166,7 +166,7 @@ const CategoryForm = () => {
                     <SelectValue placeholder="Selecione um ícone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {iconOptions.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
