@@ -79,6 +79,12 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  // Função para normalizar o número do telefone para comparação
+  const normalizePhone = (phone: string) => {
+    // Remove todos os caracteres não numéricos
+    return phone.replace(/\D/g, '');
+  };
+
   useEffect(() => {
     let filtered = [...orders];
     
@@ -87,13 +93,16 @@ const Orders = () => {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     
-    // Apply search filter (by customer name or ID)
+    // Apply search filter (by customer name, ID, phone or order_number)
     if (searchTerm.trim() !== '') {
       const searchLower = searchTerm.toLowerCase();
+      const searchNormalized = normalizePhone(searchTerm);
+      
       filtered = filtered.filter(order => 
-        order.customer_name.toLowerCase().includes(searchLower) ||
-        order.id.toLowerCase().includes(searchLower) ||
-        (order.customer_phone && order.customer_phone.includes(searchTerm))
+        order.customer_name?.toLowerCase().includes(searchLower) ||
+        order.id?.toLowerCase().includes(searchLower) ||
+        (order.order_number && order.order_number.includes(searchTerm)) ||
+        (order.customer_phone && normalizePhone(order.customer_phone).includes(searchNormalized))
       );
     }
     
@@ -121,7 +130,7 @@ const Orders = () => {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             type="search"
-            placeholder="Buscar por cliente, ID ou telefone..."
+            placeholder="Buscar por cliente, ID, número de pedido ou telefone..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -149,7 +158,7 @@ const Orders = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>ID/Nº</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Entrega</TableHead>
@@ -175,7 +184,8 @@ const Orders = () => {
               filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">
-                    {order.id.slice(0, 8)}...
+                    <div>{order.order_number || 'N/A'}</div>
+                    <div className="text-xs text-gray-500">{order.id.slice(0, 8)}...</div>
                   </TableCell>
                   <TableCell>
                     <div>{order.customer_name}</div>

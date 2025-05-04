@@ -27,7 +27,7 @@
 - [x] Adicionar seção de produtos adicionais no carrinho
 - [x] Implementar seção de itens especiais no carrinho
 - [x] Remover opção de pagamento via PIX
-- [x] Integrar pedidos com Supabase
+- [ ] Integrar pedidos com Supabase
 - [x] Implementar auto-preenchimento de endereço por CEP
 
 ## Front-end (Admin):
@@ -77,7 +77,15 @@
 - [x] Adicionar seção de produtos adicionais no carrinho
 - [x] Adicionar seção de itens especiais no carrinho
 - [x] Remover opção de pagamento via PIX
-- [x] Integrar pedidos com Supabase
+- [ ] Integrar pedidos com Supabase
 - [x] Auto-preenchimento de endereço por CEP
 - [x] Conectar horários de entrega ao gerenciamento admin
 - [x] Corrigir políticas de segurança para permitir criação e edição de produtos/categorias
+
+## Tarefas de Integração de Pedidos:
+- [ ] Adicionar campo order_number à interface OrderData em src/services/api.ts
+- [ ] Atualizar função prepareOrderData no PaymentStep.tsx para incluir o orderNumber
+- [ ] Melhorar busca por telefone na página admin/Orders
+- [ ] Validar formato de telefone em todas as etapas do checkout
+- [ ] Garantir que todos os dados do checkout sejam salvos corretamente no banco
+- [ ] Implementar visualização completa do pedido em /admin/orders/id

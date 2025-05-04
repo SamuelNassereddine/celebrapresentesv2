@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -275,6 +276,7 @@ export interface OrderData {
   personalization_text: string | null;
   total_price: number;
   status: string;
+  order_number: string; // Campo adicionado para número do pedido visual
 }
 
 // Nova interface para itens do pedido

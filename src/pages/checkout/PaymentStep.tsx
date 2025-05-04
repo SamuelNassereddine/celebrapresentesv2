@@ -133,7 +133,8 @@ const PaymentStep = () => {
       delivery_time_slot_id: data.delivery.deliveryTimeSlot,
       personalization_text: data.personalization.message || null,
       total_price: data.totalPrice,
-      status: 'pending'
+      status: 'pending',
+      order_number: orderNumber // Adicionado o orderNumber como campo
     };
   };
   
