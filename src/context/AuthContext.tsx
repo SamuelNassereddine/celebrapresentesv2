@@ -75,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) {
+        setLoading(false);
         throw error;
       }
       
@@ -85,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!userRole) {
           // User exists but is not in admin_users table
           await supabase.auth.signOut();
+          setLoading(false);
           throw new Error('Usuário não possui permissão de acesso.');
         }
         
@@ -92,7 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       setLoading(false);
-      return;
     } catch (error) {
       setLoading(false);
       throw error;
@@ -102,17 +103,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     setLoading(true);
     
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
+      setRole(null);
+      toast.success('Logout realizado com sucesso');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Erro ao realizar logout');
+    } finally {
       setLoading(false);
-      throw error;
     }
-    
-    setUser(null);
-    setRole(null);
-    setLoading(false);
-    toast.success('Logout realizado com sucesso');
   };
 
   const checkIsAdmin = async () => {

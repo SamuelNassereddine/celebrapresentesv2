@@ -45,14 +45,17 @@ export const getUserRole = async (userId: string): Promise<string | null> => {
   try {
     // Using our security definer function to avoid RLS recursion
     const { data, error } = await supabase
-      .rpc('get_admin_user_role', { user_id: userId });
+      .from('admin_users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
     
     if (error) {
       console.error('Error fetching user role:', error);
       return null;
     }
     
-    return data || null;
+    return data?.role || null;
   } catch (error) {
     console.error('Error fetching user role:', error);
     return null;

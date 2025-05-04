@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -23,7 +24,6 @@ const Login = () => {
 
     try {
       await signIn(email, password);
-      // If we get here without error, authentication was successful
       toast.success('Login realizado com sucesso');
       navigate('/admin');
     } catch (err: any) {
@@ -66,6 +66,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
               autoComplete="email"
             />
           </div>
@@ -81,6 +82,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
               autoComplete="current-password"
             />
           </div>
@@ -90,7 +92,14 @@ const Login = () => {
             className="w-full" 
             disabled={loading}
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>Entrando...</span>
+              </>
+            ) : (
+              'Entrar'
+            )}
           </Button>
         </form>
         
