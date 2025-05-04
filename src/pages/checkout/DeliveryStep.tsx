@@ -3,6 +3,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
+import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DeliveryTimeSlot {
@@ -26,6 +27,7 @@ interface DeliveryTimeSlot {
 const DeliveryStep = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { items, totalPrice } = useCart();
   const [loading, setLoading] = useState(false);
   const [deliveryTimeSlots, setDeliveryTimeSlots] = useState<DeliveryTimeSlot[]>([]);
   const [formData, setFormData] = useState({
@@ -43,6 +45,8 @@ const DeliveryStep = () => {
   });
   
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [buyerName, setBuyerName] = useState('');
+  const [shippingCost, setShippingCost] = useState<number | null>(null);
   
   useEffect(() => {
     // If identification data exists, pre-populate the recipientName
@@ -53,6 +57,7 @@ const DeliveryStep = () => {
         ...prev,
         recipientName: name
       }));
+      setBuyerName(name);
     }
     
     // Check if there's saved delivery data
@@ -140,6 +145,10 @@ const DeliveryStep = () => {
         });
         return;
       }
+      
+      // Simulate shipping cost calculation based on CEP
+      const randomShipping = Math.floor(Math.random() * 15) + 5; // Random value between 5 and 20
+      setShippingCost(randomShipping);
       
       setFormData(prev => ({
         ...prev,
@@ -243,266 +252,383 @@ const DeliveryStep = () => {
     navigate('/checkout/3');
   };
   
+  // Find the selected time slot
+  const selectedTimeSlot = deliveryTimeSlots.find(
+    slot => slot.id === formData.deliveryTimeSlot
+  );
+  
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <CheckoutSteps currentStep={2} />
         
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-          <h2 className="text-2xl font-playfair font-semibold mb-6">Detalhes da Entrega</h2>
-          
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
-              {/* Recipient Information */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Destinatário</h3>
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="recipient-self">Para mim</Label>
-                    <Switch
-                      id="recipient-self"
-                      checked={formData.recipientSelf}
-                      onCheckedChange={(checked) => 
-                        setFormData(prev => ({
-                          ...prev,
-                          recipientSelf: checked
-                        }))
-                      }
-                    />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="md:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
+              <h2 className="text-2xl font-playfair font-semibold mb-6">Dados de Entrega</h2>
+              
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-6">
+                  {/* Recipient Information */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Quem receberá o presente?</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, recipientSelf: true }))}
+                        className={`p-4 border rounded-lg text-center transition-colors ${
+                          formData.recipientSelf 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Eu mesmo vou receber
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, recipientSelf: false }))}
+                        className={`p-4 border rounded-lg text-center transition-colors ${
+                          !formData.recipientSelf 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Presente para outra pessoa
+                      </button>
+                    </div>
+                    
+                    {!formData.recipientSelf && (
+                      <div className="mt-4">
+                        <label htmlFor="recipientName" className="block text-gray-700 mb-2">
+                          Nome do Destinatário
+                        </label>
+                        <input
+                          id="recipientName"
+                          name="recipientName"
+                          type="text"
+                          value={formData.recipientName}
+                          onChange={handleChange}
+                          placeholder="Nome completo de quem vai receber"
+                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          required={!formData.recipientSelf}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Address Information */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Endereço do Destinatário</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="cep" className="block text-gray-700 mb-2">
+                          CEP para entrega
+                        </label>
+                        <div className="flex space-x-2">
+                          <div className="relative w-full">
+                            <MapPin className="absolute top-3 left-3 h-4 w-4 text-gray-500" />
+                            <input
+                              id="cep"
+                              name="cep"
+                              type="text"
+                              value={formData.cep}
+                              onChange={handleChange}
+                              placeholder="Digite o CEP"
+                              className="w-full border pl-10 border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              required
+                              maxLength={9}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-2">
+                          <label htmlFor="street" className="block text-gray-700 mb-2">
+                            Rua
+                          </label>
+                          <input
+                            id="street"
+                            name="street"
+                            type="text"
+                            value={formData.street}
+                            onChange={handleChange}
+                            placeholder="Rua, Avenida, etc."
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="number" className="block text-gray-700 mb-2">
+                            Número
+                          </label>
+                          <input
+                            id="number"
+                            name="number"
+                            type="text"
+                            value={formData.number}
+                            onChange={handleChange}
+                            placeholder="Número"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="complement" className="block text-gray-700 mb-2">
+                          Complemento (opcional)
+                        </label>
+                        <input
+                          id="complement"
+                          name="complement"
+                          type="text"
+                          value={formData.complement}
+                          onChange={handleChange}
+                          placeholder="Apartamento, bloco, etc."
+                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="neighborhood" className="block text-gray-700 mb-2">
+                          Bairro
+                        </label>
+                        <input
+                          id="neighborhood"
+                          name="neighborhood"
+                          type="text"
+                          value={formData.neighborhood}
+                          onChange={handleChange}
+                          placeholder="Bairro"
+                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="city" className="block text-gray-700 mb-2">
+                            Cidade
+                          </label>
+                          <input
+                            id="city"
+                            name="city"
+                            type="text"
+                            value={formData.city}
+                            onChange={handleChange}
+                            placeholder="Cidade"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="state" className="block text-gray-700 mb-2">
+                            Estado
+                          </label>
+                          <input
+                            id="state"
+                            name="state"
+                            type="text"
+                            value={formData.state}
+                            onChange={handleChange}
+                            placeholder="Estado"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                            maxLength={2}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Delivery Date & Time */}
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Data e Hora da Entrega</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-2">
+                          Data de Entrega
+                        </label>
+                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.deliveryDate ? (
+                                format(formData.deliveryDate, "PPP", { locale: ptBR })
+                              ) : (
+                                <span>Selecione uma data</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={formData.deliveryDate}
+                              onSelect={(date) => {
+                                if (date) {
+                                  setFormData(prev => ({ ...prev, deliveryDate: date }));
+                                  setCalendarOpen(false);
+                                }
+                              }}
+                              initialFocus
+                              disabled={(date) => 
+                                date < new Date(new Date().setHours(0, 0, 0, 0)) || 
+                                date > new Date(new Date().setMonth(new Date().getMonth() + 3))
+                              }
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-700 mb-2">
+                          Horário de Entrega
+                        </label>
+                        <RadioGroup className="space-y-3">
+                          {deliveryTimeSlots.map(slot => (
+                            <Card 
+                              key={slot.id} 
+                              className={`cursor-pointer border transition-all ${
+                                formData.deliveryTimeSlot === slot.id 
+                                  ? 'border-primary ring-1 ring-primary'
+                                  : 'hover:border-gray-300'
+                              }`}
+                              onClick={() => setFormData(prev => ({ ...prev, deliveryTimeSlot: slot.id }))}
+                            >
+                              <CardContent className="flex items-center justify-between p-4">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem 
+                                    value={slot.id} 
+                                    id={`slot-${slot.id}`} 
+                                    checked={formData.deliveryTimeSlot === slot.id}
+                                  />
+                                  <div>
+                                    <p className="font-medium">{slot.name}</p>
+                                    <p className="text-sm text-gray-500 flex items-center">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      {slot.start_time} - {slot.end_time}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-primary font-semibold">
+                                  R$ {Math.floor(Math.random() * 10) + 9},90
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </RadioGroup>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                {!formData.recipientSelf && (
-                  <div>
-                    <label htmlFor="recipientName" className="block text-gray-700 mb-2">
-                      Nome do Destinatário
-                    </label>
-                    <input
-                      id="recipientName"
-                      name="recipientName"
-                      type="text"
-                      value={formData.recipientName}
-                      onChange={handleChange}
-                      placeholder="Nome completo de quem vai receber"
-                      className="input-field"
-                      required={!formData.recipientSelf}
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* Address Information */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Endereço de Entrega</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="cep" className="block text-gray-700 mb-2">
-                      CEP
-                    </label>
-                    <div className="flex space-x-2">
-                      <input
-                        id="cep"
-                        name="cep"
-                        type="text"
-                        value={formData.cep}
-                        onChange={handleChange}
-                        placeholder="00000-000"
-                        className="input-field"
-                        required
-                        maxLength={9}
-                      />
-                    </div>
-                  </div>
+                <div className="mt-8 flex justify-between">
+                  <Button 
+                    variant="outline"
+                    type="button"
+                    onClick={() => navigate('/checkout/1')}
+                  >
+                    Voltar
+                  </Button>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="street" className="block text-gray-700 mb-2">
-                        Endereço
-                      </label>
-                      <input
-                        id="street"
-                        name="street"
-                        type="text"
-                        value={formData.street}
-                        onChange={handleChange}
-                        placeholder="Rua, Avenida, etc."
-                        className="input-field"
-                        required
+                  <Button type="submit">
+                    Continuar
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          {/* Order Summary Section - Right column */}
+          <div className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+              <h2 className="text-xl font-playfair font-semibold mb-4">Resumo do Pedido</h2>
+              <p className="text-gray-500 text-sm mb-4">{items.length} itens no seu carrinho</p>
+              
+              <div className="space-y-4 mb-6">
+                {items.map(item => (
+                  <div key={item.id} className="flex space-x-3">
+                    <div className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden">
+                      <img 
+                        src={item.image || '/placeholder.svg'} 
+                        alt={item.title} 
+                        className="h-full w-full object-cover"
                       />
                     </div>
                     
-                    <div>
-                      <label htmlFor="number" className="block text-gray-700 mb-2">
-                        Número
-                      </label>
-                      <input
-                        id="number"
-                        name="number"
-                        type="text"
-                        value={formData.number}
-                        onChange={handleChange}
-                        placeholder="Número"
-                        className="input-field"
-                        required
-                      />
+                    <div className="flex-grow">
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="font-medium">{item.title}</h3>
+                          <p className="text-sm text-gray-500">Qtd: {item.quantity}</p>
+                        </div>
+                        <p className="font-semibold">
+                          {new Intl.NumberFormat('pt-BR', { 
+                            style: 'currency', 
+                            currency: 'BRL' 
+                          }).format(Number(item.price))}
+                        </p>
+                      </div>
+                      
+                      {/* Display "Adicional" tag for special items */}
+                      {item.id.includes('special-') && (
+                        <span className="text-xs text-red-500">Adicional</span>
+                      )}
                     </div>
                   </div>
-                  
-                  <div>
-                    <label htmlFor="complement" className="block text-gray-700 mb-2">
-                      Complemento (opcional)
-                    </label>
-                    <input
-                      id="complement"
-                      name="complement"
-                      type="text"
-                      value={formData.complement}
-                      onChange={handleChange}
-                      placeholder="Apartamento, bloco, etc."
-                      className="input-field"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="neighborhood" className="block text-gray-700 mb-2">
-                      Bairro
-                    </label>
-                    <input
-                      id="neighborhood"
-                      name="neighborhood"
-                      type="text"
-                      value={formData.neighborhood}
-                      onChange={handleChange}
-                      placeholder="Bairro"
-                      className="input-field"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="city" className="block text-gray-700 mb-2">
-                        Cidade
-                      </label>
-                      <input
-                        id="city"
-                        name="city"
-                        type="text"
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder="Cidade"
-                        className="input-field"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="state" className="block text-gray-700 mb-2">
-                        Estado
-                      </label>
-                      <input
-                        id="state"
-                        name="state"
-                        type="text"
-                        value={formData.state}
-                        onChange={handleChange}
-                        placeholder="Estado"
-                        className="input-field"
-                        required
-                        maxLength={2}
-                      />
-                    </div>
-                  </div>
+                ))}
+              </div>
+              
+              <div className="border-t border-gray-200 pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <p className="text-gray-600">Subtotal</p>
+                  <p className="font-medium">
+                    {new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(totalPrice)}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between">
+                  <p className="text-gray-600">Frete</p>
+                  <p className="font-medium">
+                    {shippingCost !== null 
+                      ? new Intl.NumberFormat('pt-BR', { 
+                        style: 'currency', 
+                        currency: 'BRL' 
+                      }).format(shippingCost)
+                      : 'Calculando...'}
+                  </p>
+                </div>
+                
+                <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-semibold">
+                  <p>Total</p>
+                  <p>
+                    {new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(totalPrice + (shippingCost || 0))}
+                  </p>
                 </div>
               </div>
               
-              {/* Delivery Date & Time */}
-              <div>
-                <h3 className="text-lg font-medium mb-4">Data e Horário de Entrega</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-700 mb-2">
-                      Data de Entrega
-                    </label>
-                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.deliveryDate ? (
-                            format(formData.deliveryDate, "PPP", { locale: ptBR })
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={formData.deliveryDate}
-                          onSelect={(date) => {
-                            if (date) {
-                              setFormData(prev => ({ ...prev, deliveryDate: date }));
-                              setCalendarOpen(false);
-                            }
-                          }}
-                          initialFocus
-                          disabled={(date) => 
-                            date < new Date(new Date().setHours(0, 0, 0, 0)) || 
-                            date > new Date(new Date().setMonth(new Date().getMonth() + 3))
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-gray-700 mb-2">
-                      Horário de Entrega
-                    </label>
-                    <Card>
-                      <CardContent className="pt-6">
-                        <RadioGroup value={formData.deliveryTimeSlot} onValueChange={(value) => setFormData(prev => ({ ...prev, deliveryTimeSlot: value }))}>
-                          <div className="grid grid-cols-1 gap-4">
-                            {deliveryTimeSlots.length > 0 ? (
-                              deliveryTimeSlots.map((slot) => (
-                                <div key={slot.id} className="flex items-center space-x-2">
-                                  <RadioGroupItem value={slot.id} id={`slot-${slot.id}`} />
-                                  <Label htmlFor={`slot-${slot.id}`} className="flex-grow">
-                                    {slot.name} ({slot.start_time} - {slot.end_time})
-                                  </Label>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-center py-2 text-gray-500">
-                                {loading ? "Carregando horários..." : "Nenhum horário disponível"}
-                              </div>
-                            )}
-                          </div>
-                        </RadioGroup>
-                      </CardContent>
-                    </Card>
-                  </div>
+              {/* Information about the buyer */}
+              {buyerName && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-700">Informações do pedido:</p>
+                  <p className="text-sm font-medium">Comprador: {buyerName}</p>
                 </div>
-              </div>
+              )}
             </div>
-            
-            <div className="mt-8 flex justify-between">
-              <Button 
-                variant="outline"
-                type="button"
-                onClick={() => navigate('/checkout/1')}
-              >
-                Voltar
-              </Button>
-              
-              <Button type="submit">
-                Continuar
-              </Button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </Layout>
