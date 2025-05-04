@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -281,7 +280,7 @@ export interface OrderData {
 
 // Nova interface para itens do pedido
 export interface OrderItemData {
-  order_id: string;
+  order_id?: string;
   product_id: string;
   product_title: string;
   unit_price: number;
@@ -294,6 +293,8 @@ export const saveOrder = async (
   orderItems: Omit<OrderItemData, 'order_id'>[]
 ): Promise<{success: boolean; orderId?: string; error?: any}> => {
   try {
+    console.log('Salvando pedido:', orderData);
+    
     // Salvar o pedido
     const { data: createdOrder, error: orderError } = await supabase
       .from('orders')
@@ -310,6 +311,8 @@ export const saveOrder = async (
       return { success: false, error: 'Não foi possível criar o pedido' };
     }
     
+    console.log('Pedido criado com sucesso:', createdOrder);
+    
     // Salvar os itens do pedido
     const itemsWithOrderId = orderItems.map(item => ({
       ...item,
@@ -324,6 +327,8 @@ export const saveOrder = async (
       console.error('Error saving order items:', itemsError);
       return { success: false, error: itemsError };
     }
+    
+    console.log('Itens do pedido salvos com sucesso');
     
     return { success: true, orderId: createdOrder.id };
   } catch (error) {

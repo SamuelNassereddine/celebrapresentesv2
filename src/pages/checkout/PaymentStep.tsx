@@ -134,7 +134,7 @@ const PaymentStep = () => {
       personalization_text: data.personalization.message || null,
       total_price: data.totalPrice,
       status: 'pending',
-      order_number: orderNumber // Adicionado o orderNumber como campo
+      order_number: orderNumber // Número do pedido (agora está presente na tabela)
     };
   };
   
@@ -162,12 +162,15 @@ const PaymentStep = () => {
       const orderData = prepareOrderData();
       const orderItems = prepareOrderItems();
       
+      console.log('Tentando salvar o pedido com dados:', orderData);
+      
       try {
-        // Tenta salvar no banco usando a nova função
+        // Tenta salvar no banco usando a função saveOrder
         const result = await saveOrder(orderData, orderItems);
         
         if (result.success) {
           toast.success('Pedido registrado com sucesso!');
+          console.log('Pedido salvo com sucesso, ID:', result.orderId);
         } else {
           console.error('Erro ao salvar pedido:', result.error);
           toast.error('Não foi possível salvar o pedido no sistema, mas você pode continuar via WhatsApp');
