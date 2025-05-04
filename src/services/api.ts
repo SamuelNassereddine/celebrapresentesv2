@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -137,7 +138,7 @@ export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
   return data || [];
 };
 
-// Nova função para upload de imagem
+// Função para upload de imagem
 export const uploadProductImage = async (file: File): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
@@ -164,7 +165,7 @@ export const uploadProductImage = async (file: File): Promise<string | null> => 
   }
 };
 
-// Nova função para excluir imagem do storage
+// Função para excluir imagem do storage
 export const deleteProductImageFromStorage = async (url: string): Promise<boolean> => {
   try {
     // Extrai o nome do arquivo da URL
