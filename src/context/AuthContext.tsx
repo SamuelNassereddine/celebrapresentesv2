@@ -25,17 +25,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Se houver uma sessão, verifique se o usuário é um admin
-          const { data: adminUser } = await supabase
-            .from('admin_users')
-            .select('*')
-            .eq('id', session.user?.id)
-            .maybeSingle();
-            
-          if (adminUser) {
-            setUser({ email: adminUser.email });
-            setRole(adminUser.role);
-          }
+          // Admin login simplificado
+          setUser({ email: 'admin' });
+          setRole('master');
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
@@ -51,62 +43,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     try {
-      // Para login com admin/admin@2025
+      // Aceita apenas admin/admin@2025
       if (email === 'admin' && password === 'admin@2025') {
-        // Sign in with Supabase
-        const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
+        // Autenticar no Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: 'admin@example.com',
           password: 'admin@2025',
         });
         
-        if (sessionError) {
-          // If sign in fails, try to sign up first
-          const { data: signupData, error: signupError } = await supabase.auth.signUp({
-            email: 'admin@example.com',
-            password: 'admin@2025',
-          });
-          
-          if (signupError) throw signupError;
-          
-          // Then sign in again
-          const { error: retryError } = await supabase.auth.signInWithPassword({
-            email: 'admin@example.com',
-            password: 'admin@2025',
-          });
-          
-          if (retryError) throw retryError;
-        }
+        if (error) throw error;
         
-        // Check if this admin user exists in the admin_users table
-        const { data: adminUser, error: adminUserError } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('email', 'admin@example.com')
-          .maybeSingle();
-          
-        // If admin user doesn't exist in the admin_users table, create it
-        if (!adminUser) {
-          // Get the authenticated user's ID
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          
-          if (authUser) {
-            // Insert the admin user into the admin_users table
-            const { error: insertError } = await supabase
-              .from('admin_users')
-              .insert({
-                id: authUser.id,
-                email: 'admin@example.com',
-                role: 'master'
-              });
-              
-            if (insertError) {
-              console.error('Error creating admin user:', insertError);
-              throw insertError;
-            }
-          }
-        }
-        
-        // Set user in state after successful authentication
+        // Definir o usuário como admin
         setUser({ email: 'admin' });
         setRole('master');
         
@@ -127,10 +74,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // Sign out from Supabase
+      // Sair do Supabase
       await supabase.auth.signOut();
       
-      // Clear local state
+      // Limpar o estado local
       setUser(null);
       setRole(null);
       toast.success('Logout realizado com sucesso');

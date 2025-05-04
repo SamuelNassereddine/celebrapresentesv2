@@ -28,8 +28,13 @@ const Login = () => {
     setError(null);
     
     try {
-      await signIn(email, password);
-      navigate('/admin');
+      // Verificar se as credenciais são admin/admin@2025
+      if (email === 'admin' && password === 'admin@2025') {
+        await signIn(email, password);
+        navigate('/admin');
+      } else {
+        throw new Error('Credenciais inválidas. Use admin / admin@2025');
+      }
     } catch (err: any) {
       console.error("Erro de login:", err);
       setError(err.message || 'Ocorreu um erro ao realizar o login.');
