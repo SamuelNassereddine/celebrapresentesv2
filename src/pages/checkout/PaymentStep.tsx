@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
 import { useCart } from '@/context/CartContext';
-import { QRCodePix } from 'qrcode-pix';
+import { QrCodePix } from 'qrcode-pix';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
