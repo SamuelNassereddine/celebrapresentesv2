@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 const Login = () => {
@@ -19,28 +18,35 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos.');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
-    console.log('🔐 Login attempt started for:', email);
+    console.log('🔐 Login: Tentando login com:', email);
 
     try {
-      console.log('⏳ Calling signIn function...');
+      console.log('🔐 Login: Chamando função signIn...');
       await signIn(email, password);
-      console.log('✅ Login successful!');
-      toast.success('Login realizado com sucesso');
+      console.log('🔐 Login: Login bem-sucedido!');
       navigate('/admin');
     } catch (err: any) {
-      console.error('❌ Login error:', err);
-      if (err.message === 'Usuário não possui permissão de acesso.') {
-        setError('Este usuário não possui permissão para acessar a área administrativa.');
-      } else if (err.message === 'Invalid login credentials') {
+      console.error('🔐 Login: Erro no login:', err);
+      
+      // Handle specific error messages
+      if (err.message === 'Invalid login credentials') {
         setError('Credenciais inválidas. Verifique seu email e senha.');
+      } else if (err.message === 'Usuário não possui permissão de acesso.') {
+        setError('Este usuário não possui permissão para acessar a área administrativa.');
       } else {
-        setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+        setError(err.message || 'Ocorreu um erro ao realizar o login.');
       }
     } finally {
-      console.log('🏁 Login attempt completed');
+      console.log('🔐 Login: Processo de login finalizado');
       setLoading(false);
     }
   };
@@ -54,7 +60,7 @@ const Login = () => {
         </div>
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="animate-fade-in">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -73,6 +79,7 @@ const Login = () => {
               required
               disabled={loading}
               autoComplete="email"
+              className="w-full"
             />
           </div>
 
@@ -89,6 +96,7 @@ const Login = () => {
               required
               disabled={loading}
               autoComplete="current-password"
+              className="w-full"
             />
           </div>
 
