@@ -33,33 +33,39 @@ const PaymentStep = () => {
     setOrderNumber(randomOrderNum.toString());
     
     // Generate PIX code and QR code
-    generatePixCode(randomOrderNum.toString());
+    if (totalPrice > 0) {
+      generatePixCode(randomOrderNum.toString());
+    }
   }, [totalPrice]);
   
   const generatePixCode = async (txid: string) => {
     try {
       setIsGeneratingPix(true);
       
-      // Format the amount properly - ensure it has 2 decimal places
-      const formattedAmount = totalPrice.toFixed(2);
+      // Format the amount properly for the PIX code
+      const amount = Number(totalPrice.toFixed(2));
       
-      // Create the QrCodePix instance - fixed capitalization here
+      if (amount <= 0) {
+        throw new Error("O valor do pagamento deve ser maior que zero");
+      }
+      
+      // Create the QrCodePix instance based on the documentation
       const qrCodePix = QrCodePix({
         version: '01',
         key: storeSettings.pixKey,
         name: storeSettings.pixReceiverName,
         city: storeSettings.pixCity,
-        value: formattedAmount,
-        txid: txid,
+        value: amount,
+        transactionId: txid,
         message: `Pedido #${txid}`
       });
       
-      // Get the BR Code (PIX code for copying)
-      const brCode = qrCodePix.getBRCode();
+      // Get the payload (PIX code for copying)
+      const brCode = qrCodePix.payload();
       setPixCode(brCode);
       
       // Get the QR code as a base64 string
-      const qrCodeBase64 = await qrCodePix.getQRCode();
+      const qrCodeBase64 = await qrCodePix.base64();
       setPixQRCode(qrCodeBase64);
     } catch (error) {
       console.error('Erro ao gerar código PIX:', error);
@@ -243,6 +249,10 @@ const PaymentStep = () => {
                     {isGeneratingPix ? (
                       <div className="flex justify-center p-6">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                      </div>
+                    ) : totalPrice <= 0 ? (
+                      <div className="text-center p-6 text-gray-600">
+                        O valor do pedido deve ser maior que zero para gerar um código PIX.
                       </div>
                     ) : (
                       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
