@@ -7,6 +7,14 @@ import ProductAddedNotification from '@/components/Cart/ProductAddedNotification
 import { useToast } from '@/hooks/use-toast';
 import { fetchProductById } from '@/services/api';
 import { Database } from '@/integrations/supabase/types';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
@@ -20,6 +28,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
   const { toast } = useToast();
+  const [activeImage, setActiveImage] = useState(0);
   
   useEffect(() => {
     const loadProduct = async () => {
@@ -75,19 +84,48 @@ const ProductDetail = () => {
       description: `${product.title} foi adicionado ao seu carrinho`,
     });
   };
+
+  // Determine if we should show a carousel or single image
+  const hasMultipleImages = product.images.length > 1;
   
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Product Image */}
+            {/* Product Image - Carousel or Single Image */}
             <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-              <img 
-                src={product.images[0]?.url || '/placeholder.svg'} 
-                alt={product.title}
-                className="w-full h-auto object-cover"
-              />
+              {hasMultipleImages ? (
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {product.images.map((image, index) => (
+                      <CarouselItem key={image.id}>
+                        <div className="p-1">
+                          <img 
+                            src={image.url || '/placeholder.svg'} 
+                            alt={`${product.title} - Imagem ${index + 1}`}
+                            className="w-full h-96 object-cover rounded-md"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-2" />
+                  <CarouselNext className="right-2" />
+                </Carousel>
+              ) : (
+                <img 
+                  src={product.images[0]?.url || '/placeholder.svg'} 
+                  alt={product.title}
+                  className="w-full h-auto object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/placeholder.svg';
+                  }}
+                />
+              )}
             </div>
             
             {/* Product Info */}
