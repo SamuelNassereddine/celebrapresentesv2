@@ -212,7 +212,10 @@ const ProductForm = () => {
           })
           .eq('id', id);
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating product:', error);
+          throw error;
+        }
       } else {
         const { data, error } = await supabase
           .from('products')
@@ -224,8 +227,12 @@ const ProductForm = () => {
           })
           .select();
           
-        if (error) throw error;
-        productId = data?.[0].id;
+        if (error) {
+          console.error('Error creating product:', error);
+          throw error;
+        }
+        
+        productId = data?.[0]?.id;
       }
       
       // Faça upload das novas imagens
@@ -242,7 +249,10 @@ const ProductForm = () => {
               is_primary: img.is_primary
             })));
             
-          if (error) throw error;
+          if (error) {
+            console.error('Error inserting product images:', error);
+            throw error;
+          }
         }
       }
       
@@ -250,7 +260,7 @@ const ProductForm = () => {
       navigate('/admin/products');
     } catch (error) {
       console.error('Error saving product:', error);
-      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} produto`);
+      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} produto: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setSaving(false);
     }

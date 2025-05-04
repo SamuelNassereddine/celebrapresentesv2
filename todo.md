@@ -7,6 +7,7 @@
 - [x] Configurar rotas com React Router
 - [x] Configurar projeto com Supabase
 - [x] Criar tabelas no Supabase
+- [x] Configurar políticas de segurança para acesso (RLS)
 
 ## Back-end:
 - [x] Implementar APIs para produtos, categorias, pedidos, configurações
@@ -47,6 +48,7 @@
 - [ ] Validar filtros e relatórios do painel administrativo
 - [ ] Testar personalização do catálogo
 - [ ] Verificar fluxo completo de compra
+- [ ] Testar permissões de usuário admin
 
 ## Supabase (Concluído):
 - [x] Configurar tabelas:
@@ -58,6 +60,7 @@
   - [x] orders
   - [x] order_items
   - [x] delivery_time_slots
+- [x] Configurar políticas de Row Level Security (RLS)
 
 ## Próximos Passos:
 - [ ] Implementar sistema de upload de imagens
@@ -73,3 +76,4 @@
 - [x] Integrar pedidos com Supabase
 - [x] Auto-preenchimento de endereço por CEP
 - [x] Conectar horários de entrega ao gerenciamento admin
+- [x] Corrigir políticas de segurança para permitir criação e edição de produtos/categorias

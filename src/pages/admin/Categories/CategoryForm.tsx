@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -102,13 +101,16 @@ const CategoryForm = () => {
           .insert({ name, slug, icon });
       }
       
-      if (response.error) throw response.error;
+      if (response.error) {
+        console.error('Error saving category:', response.error);
+        throw response.error;
+      }
       
       toast.success(`Categoria ${isEditing ? 'atualizada' : 'criada'} com sucesso`);
       navigate('/admin/categories');
     } catch (error) {
       console.error('Error saving category:', error);
-      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria`);
+      toast.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setSaving(false);
     }

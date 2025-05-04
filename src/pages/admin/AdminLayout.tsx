@@ -22,8 +22,19 @@ const AdminLayout = ({ children, requiredRole = 'viewer' }: AdminLayoutProps) =>
         navigate('/admin/login');
         return;
       }
+      
+      // Check if user has the required role
+      if (requiredRole === 'master' && role !== 'master') {
+        navigate('/admin');
+        return;
+      }
+      
+      if (requiredRole === 'editor' && role !== 'master' && role !== 'editor') {
+        navigate('/admin');
+        return;
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, role, loading, navigate, requiredRole]);
 
   // Show loading state while checking authentication
   if (loading) {
