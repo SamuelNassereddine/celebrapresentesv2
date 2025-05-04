@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import { saveOrder } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 import { fetchStoreSettings } from '@/services/api';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
@@ -18,34 +18,69 @@ const PaymentStep = () => {
   const { items, totalPrice, clearCart } = useCart();
   const [orderNumber, setOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [storeSettings, setStoreSettings] = useState({ whatsappNumber: '5511987965672' });
   const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderData, setOrderData] = useState<any>(null);
   
   useEffect(() => {
-    // Generate a random order number
-    const randomOrderNum = Math.floor(100000 + Math.random() * 900000);
-    setOrderNumber(randomOrderNum.toString());
+    const savedOrderId = localStorage.getItem('currentOrderId');
+    if (!savedOrderId) {
+      // Se não temos um ID de pedido, voltar para a primeira etapa
+      toast.error('Por favor, complete as etapas anteriores primeiro');
+      navigate('/checkout/1');
+      return;
+    }
     
-    // Fetch store settings
-    const getStoreSettings = async () => {
-      const settings = await fetchStoreSettings();
-      if (settings && settings.whatsapp_number) {
-        setStoreSettings(prevSettings => ({
-          ...prevSettings,
-          whatsappNumber: settings.whatsapp_number
-        }));
+    setOrderId(savedOrderId);
+    
+    // Carregar dados do pedido e configurações da loja
+    const loadData = async () => {
+      try {
+        // Carregar pedido
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', savedOrderId)
+          .single();
+          
+        if (error) throw error;
+        setOrderData(data);
+        setOrderNumber(data.order_number || '');
+        
+        // Carregar configurações da loja
+        const settings = await fetchStoreSettings();
+        if (settings && settings.whatsapp_number) {
+          setStoreSettings(prevSettings => ({
+            ...prevSettings,
+            whatsappNumber: settings.whatsapp_number
+          }));
+        }
+        
+        // Atualizar o preço total no pedido
+        await supabase
+          .from('orders')
+          .update({ total_price: totalPrice })
+          .eq('id', savedOrderId);
+          
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        toast.error('Erro ao carregar dados do pedido');
+      } finally {
+        setInitialLoading(false);
       }
     };
     
-    getStoreSettings();
-  }, []);
+    loadData();
+  }, [navigate, totalPrice]);
   
   // Verificar se há dados de checkout
   const checkoutDataExists = () => {
     const identification = localStorage.getItem('checkoutIdentification');
     const delivery = localStorage.getItem('checkoutDelivery');
     
-    return !!identification && !!delivery;
+    return !!identification && !!delivery && !!orderId;
   };
   
   // Redirecionar se não tiver dados completos
@@ -56,156 +91,129 @@ const PaymentStep = () => {
     }
   }, [navigate]);
   
-  // Get all checkout data
-  const getCheckoutData = () => {
-    const identification = localStorage.getItem('checkoutIdentification');
-    const delivery = localStorage.getItem('checkoutDelivery');
-    const personalization = localStorage.getItem('checkoutPersonalization');
-    
-    return {
-      identification: identification ? JSON.parse(identification) : {},
-      delivery: delivery ? JSON.parse(delivery) : {},
-      personalization: personalization ? JSON.parse(personalization) : {},
-      items,
-      totalPrice,
-      orderNumber
-    };
-  };
-  
   const formatWhatsAppMessage = () => {
-    const data = getCheckoutData();
-    let message = `*Pedido #${data.orderNumber}*\n\n`;
+    if (!orderData) return '';
+    
+    let message = `*Pedido #${orderNumber}*\n\n`;
     
     // Customer info
     message += `*Informações do Cliente*\n`;
-    message += `Nome: ${data.identification.name}\n`;
-    message += `Telefone: ${data.identification.phone}\n`;
-    if (data.identification.email) message += `Email: ${data.identification.email}\n`;
+    message += `Nome: ${orderData.customer_name}\n`;
+    message += `Telefone: ${orderData.customer_phone}\n`;
+    if (orderData.customer_email) message += `Email: ${orderData.customer_email}\n`;
     message += `\n`;
     
     // Delivery info
     message += `*Informações de Entrega*\n`;
-    if (!data.delivery.recipientSelf) {
-      message += `Destinatário: ${data.delivery.recipientName}\n`;
+    if (orderData.recipient_name !== orderData.customer_name) {
+      message += `Destinatário: ${orderData.recipient_name}\n`;
     }
-    message += `Endereço: ${data.delivery.street}, ${data.delivery.number}`;
-    if (data.delivery.complement) message += `, ${data.delivery.complement}`;
-    message += `\n${data.delivery.neighborhood}, ${data.delivery.city} - ${data.delivery.state}\n`;
-    message += `CEP: ${data.delivery.cep}\n`;
+    message += `Endereço: ${orderData.address_street}, ${orderData.address_number}`;
+    if (orderData.address_complement) message += `, ${orderData.address_complement}`;
+    message += `\n${orderData.address_neighborhood}, ${orderData.address_city} - ${orderData.address_state}\n`;
+    message += `CEP: ${orderData.address_zipcode}\n`;
     
     // Delivery time
-    message += `Data de entrega: ${new Date(data.delivery.deliveryDate).toLocaleDateString('pt-BR')}\n`;
-    const timeSlot = data.delivery.deliveryTimeSlot === '1' ? '08:00 - 12:00' :
-                      data.delivery.deliveryTimeSlot === '2' ? '12:00 - 15:00' :
-                      data.delivery.deliveryTimeSlot === '3' ? '15:00 - 18:00' : '18:00 - 20:00';
-    message += `Horário: ${timeSlot}\n\n`;
+    message += `Data de entrega: ${new Date(orderData.delivery_date).toLocaleDateString('pt-BR')}\n`;
     
     // Message
-    if (data.personalization.message) {
-      message += `*Mensagem*\n"${data.personalization.message}"\n\n`;
+    if (orderData.personalization_text) {
+      message += `\n*Mensagem*\n"${orderData.personalization_text}"\n\n`;
     }
     
     // Items
     message += `*Itens do Pedido*\n`;
-    data.items.forEach((item) => {
+    items.forEach((item) => {
       message += `${item.quantity}x ${item.title} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price * item.quantity)}\n`;
     });
-    message += `\n*Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.totalPrice)}*`;
+    message += `\n*Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice)}*`;
     
     return encodeURIComponent(message);
   };
   
-  const prepareOrderData = () => {
-    const data = getCheckoutData();
+  const addOrderItems = async () => {
+    if (!orderId) return false;
     
-    // Preparar dados de acordo com o esquema da tabela orders
-    return {
-      customer_name: data.identification.name,
-      customer_phone: data.identification.phone,
-      customer_email: data.identification.email || null,
-      recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
-      address_street: data.delivery.street,
-      address_number: data.delivery.number,
-      address_complement: data.delivery.complement || null,
-      address_neighborhood: data.delivery.neighborhood,
-      address_city: data.delivery.city,
-      address_state: data.delivery.state,
-      address_zipcode: data.delivery.cep,
-      delivery_date: data.delivery.deliveryDate,
-      delivery_time_slot_id: data.delivery.deliveryTimeSlot,
-      personalization_text: data.personalization.message || null,
-      total_price: data.totalPrice,
-      status: 'pending',
-      order_number: orderNumber
-    };
-  };
-  
-  const prepareOrderItems = () => {
-    // Preparar itens do pedido de acordo com o esquema da tabela order_items
-    return items.map(item => ({
-      product_id: item.id,
-      product_title: item.title,
-      unit_price: item.price,
-      quantity: item.quantity
-    }));
+    try {
+      // Remover itens existentes (se houver)
+      await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', orderId);
+      
+      // Adicionar os itens do carrinho ao pedido
+      const orderItems = items.map(item => ({
+        order_id: orderId,
+        product_title: item.title,
+        unit_price: item.price,
+        quantity: item.quantity,
+        product_id: item.id.startsWith('special-') ? null : item.id // Apenas produtos regulares têm product_id
+      }));
+      
+      if (orderItems.length > 0) {
+        const { error } = await supabase
+          .from('order_items')
+          .insert(orderItems);
+          
+        if (error) {
+          console.error('Erro ao adicionar itens ao pedido:', error);
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro não tratado:', error);
+      return false;
+    }
   };
   
   const handleWhatsAppCheckout = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || !orderId) return;
     
     try {
       setIsSubmitting(true);
       setError(null);
       
-      // Preparar a mensagem antes de salvar para que se houver erro no banco,
-      // pelo menos o cliente possa enviar a mensagem via WhatsApp
+      // Atualizar o preço final do pedido e adicionar os itens
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ total_price: totalPrice })
+        .eq('id', orderId);
+        
+      if (updateError) {
+        console.error('Erro ao atualizar preço final:', updateError);
+        setError('Erro ao finalizar o pedido. Tente novamente.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Adicionar os itens do pedido
+      const itemsAdded = await addOrderItems();
+      if (!itemsAdded) {
+        setError('Erro ao adicionar itens ao pedido. Tente novamente.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Preparar a mensagem para o WhatsApp
       const message = formatWhatsAppMessage();
       
-      // Preparar dados para salvar no banco de dados
-      const orderData = prepareOrderData();
-      const orderItems = prepareOrderItems();
+      // Clear the cart and checkout data
+      clearCart();
       
-      console.log('Tentando salvar o pedido com dados:', orderData);
+      // Manter o ID do pedido para uso na tela de confirmação
+      // Mas limpar os outros dados temporários
+      localStorage.removeItem('checkoutIdentification');
+      localStorage.removeItem('checkoutDelivery');
+      localStorage.removeItem('checkoutPersonalization');
       
-      try {
-        // Tenta salvar no banco usando a função saveOrder
-        const result = await saveOrder(orderData, orderItems);
-        
-        if (result.success) {
-          toast.success('Pedido registrado com sucesso!');
-          console.log('Pedido salvo com sucesso, ID:', result.orderId);
-          
-          // Clear the cart and checkout data
-          clearCart();
-          localStorage.removeItem('checkoutIdentification');
-          localStorage.removeItem('checkoutDelivery');
-          localStorage.removeItem('checkoutPersonalization');
-          
-          // Open WhatsApp in a new tab
-          const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
-          window.open(whatsappUrl, '_blank');
-          
-          // Navigate to confirmation page
-          navigate('/checkout/confirmation');
-        } else {
-          console.error('Erro ao salvar pedido:', result.error);
-          setError('Falha ao salvar o pedido no sistema. Você ainda pode continuar via WhatsApp.');
-          toast.error('Não foi possível salvar o pedido no sistema, mas você pode continuar via WhatsApp');
-          
-          // Mesmo com erro, permite abrir o WhatsApp
-          const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
-          window.open(whatsappUrl, '_blank');
-        }
-      } catch (dbError) {
-        // Se falhar em salvar no banco, apenas mostra um aviso mas continua para WhatsApp
-        console.error('Não foi possível salvar o pedido no banco de dados:', dbError);
-        setError('Falha ao salvar o pedido. Você ainda pode continuar via WhatsApp.');
-        toast.error('Não foi possível salvar o pedido, mas você pode continuar via WhatsApp');
-        
-        // Independente do resultado do banco, permite continuar para o WhatsApp
-        const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
-        window.open(whatsappUrl, '_blank');
-      }
+      // Open WhatsApp in a new tab
+      const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
+      
+      // Navigate to confirmation page
+      navigate('/checkout/confirmation');
     } catch (error) {
       setError('Erro ao processar o pedido. Tente novamente ou continue via WhatsApp.');
       toast.error('Erro ao finalizar pedido. Tente novamente.');
@@ -214,6 +222,19 @@ const PaymentStep = () => {
       setIsSubmitting(false);
     }
   };
+  
+  if (initialLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8 max-w-3xl">
+          <CheckoutSteps currentStep={4} />
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout>

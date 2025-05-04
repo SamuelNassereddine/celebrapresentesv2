@@ -1,4 +1,3 @@
-
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -16,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast as sonnerToast } from 'sonner';
 
 interface DeliveryTimeSlot {
   id: string;
@@ -30,6 +30,7 @@ const DeliveryStep = () => {
   const { items, totalPrice } = useCart();
   const [loading, setLoading] = useState(false);
   const [deliveryTimeSlots, setDeliveryTimeSlots] = useState<DeliveryTimeSlot[]>([]);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     recipientSelf: true,
     recipientName: '',
@@ -49,30 +50,78 @@ const DeliveryStep = () => {
   const [shippingCost, setShippingCost] = useState<number | null>(null);
   
   useEffect(() => {
-    // If identification data exists, pre-populate the recipientName
-    const identificationData = localStorage.getItem('checkoutIdentification');
-    if (identificationData) {
-      const { name } = JSON.parse(identificationData);
-      setFormData(prev => ({
-        ...prev,
-        recipientName: name
-      }));
-      setBuyerName(name);
+    // Verificar se temos um ID de pedido
+    const savedOrderId = localStorage.getItem('currentOrderId');
+    if (!savedOrderId) {
+      // Se não temos um ID de pedido, voltar para a primeira etapa
+      sonnerToast.error('Por favor, complete a etapa de identificação primeiro');
+      navigate('/checkout/1');
+      return;
     }
     
-    // Check if there's saved delivery data
-    const savedDeliveryData = localStorage.getItem('checkoutDelivery');
-    if (savedDeliveryData) {
-      const parsedData = JSON.parse(savedDeliveryData);
-      // Set the date as a Date object
-      setFormData({
-        ...parsedData,
-        deliveryDate: parsedData.deliveryDate ? new Date(parsedData.deliveryDate) : new Date()
-      });
-    }
+    setOrderId(savedOrderId);
     
+    // Carregar dados do pedido existente
+    const loadOrderData = async () => {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', savedOrderId)
+        .single();
+        
+      if (orderError || !orderData) {
+        console.error('Erro ao carregar dados do pedido:', orderError);
+        sonnerToast.error('Erro ao carregar dados do pedido');
+        navigate('/checkout/1');
+        return;
+      }
+      
+      // Preencher dados do cliente
+      setBuyerName(orderData.customer_name);
+      
+      // Preencher dados de entrega se existirem
+      if (orderData.recipient_name || orderData.address_street) {
+        setFormData(prev => ({
+          ...prev,
+          recipientSelf: orderData.recipient_name === orderData.customer_name,
+          recipientName: orderData.recipient_name || '',
+          street: orderData.address_street || '',
+          number: orderData.address_number || '',
+          complement: orderData.address_complement || '',
+          neighborhood: orderData.address_neighborhood || '',
+          city: orderData.address_city || '',
+          state: orderData.address_state || '',
+          cep: orderData.address_zipcode || '',
+          deliveryTimeSlot: orderData.delivery_time_slot_id || '',
+          deliveryDate: orderData.delivery_date ? new Date(orderData.delivery_date) : new Date()
+        }));
+      } else {
+        // If identification data exists, pre-populate the recipientName
+        const identificationData = localStorage.getItem('checkoutIdentification');
+        if (identificationData) {
+          const { name } = JSON.parse(identificationData);
+          setFormData(prev => ({
+            ...prev,
+            recipientName: name
+          }));
+        }
+        
+        // Check if there's saved delivery data
+        const savedDeliveryData = localStorage.getItem('checkoutDelivery');
+        if (savedDeliveryData) {
+          const parsedData = JSON.parse(savedDeliveryData);
+          // Set the date as a Date object
+          setFormData({
+            ...parsedData,
+            deliveryDate: parsedData.deliveryDate ? new Date(parsedData.deliveryDate) : new Date()
+          });
+        }
+      }
+    };
+    
+    loadOrderData();
     fetchDeliveryTimeSlots();
-  }, []);
+  }, [navigate]);
   
   const fetchDeliveryTimeSlots = async () => {
     try {
@@ -169,8 +218,51 @@ const DeliveryStep = () => {
     }
   };
   
-  const handleSubmit = (e: FormEvent) => {
+  const updateOrderWithDeliveryData = async () => {
+    if (!orderId) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          recipient_name: formData.recipientSelf ? buyerName : formData.recipientName,
+          address_street: formData.street,
+          address_number: formData.number,
+          address_complement: formData.complement || null,
+          address_neighborhood: formData.neighborhood,
+          address_city: formData.city,
+          address_state: formData.state,
+          address_zipcode: formData.cep,
+          delivery_date: formData.deliveryDate.toISOString(),
+          delivery_time_slot_id: formData.deliveryTimeSlot
+        })
+        .eq('id', orderId);
+        
+      if (error) {
+        console.error('Erro ao atualizar dados de entrega:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao salvar dados de entrega",
+          description: "Por favor, tente novamente.",
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro não tratado:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao processar sua solicitação.",
+      });
+      return false;
+    }
+  };
+  
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
     // Validate form
     if (!formData.recipientSelf && !formData.recipientName.trim()) {
@@ -179,6 +271,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira o nome do destinatário.",
       });
+      setLoading(false);
       return;
     }
     
@@ -188,6 +281,7 @@ const DeliveryStep = () => {
         title: "CEP inválido",
         description: "Por favor, insira um CEP válido.",
       });
+      setLoading(false);
       return;
     }
     
@@ -197,6 +291,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira o endereço.",
       });
+      setLoading(false);
       return;
     }
     
@@ -206,6 +301,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira o número.",
       });
+      setLoading(false);
       return;
     }
     
@@ -215,6 +311,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira o bairro.",
       });
+      setLoading(false);
       return;
     }
     
@@ -224,6 +321,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira a cidade.",
       });
+      setLoading(false);
       return;
     }
     
@@ -233,6 +331,7 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, insira o estado.",
       });
+      setLoading(false);
       return;
     }
     
@@ -242,14 +341,22 @@ const DeliveryStep = () => {
         title: "Campo obrigatório",
         description: "Por favor, selecione um horário de entrega.",
       });
+      setLoading(false);
       return;
     }
     
-    // Store form data in localStorage
-    localStorage.setItem('checkoutDelivery', JSON.stringify(formData));
+    // Atualizar o pedido com os dados de entrega
+    const success = await updateOrderWithDeliveryData();
     
-    // Navigate to next step
-    navigate('/checkout/3');
+    if (success) {
+      // Store form data in localStorage
+      localStorage.setItem('checkoutDelivery', JSON.stringify(formData));
+      
+      // Navigate to next step
+      navigate('/checkout/3');
+    }
+    
+    setLoading(false);
   };
   
   // Find the selected time slot
@@ -538,8 +645,11 @@ const DeliveryStep = () => {
                     Voltar
                   </Button>
                   
-                  <Button type="submit">
-                    Continuar
+                  <Button 
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? 'Salvando...' : 'Continuar'}
                   </Button>
                 </div>
               </form>
