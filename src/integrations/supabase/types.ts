@@ -282,6 +282,36 @@ export type Database = {
           },
         ]
       }
+      special_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string
+          price: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url: string
+          price: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          price?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       store_settings: {
         Row: {
           created_at: string | null

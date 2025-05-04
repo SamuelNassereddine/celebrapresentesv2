@@ -4,67 +4,39 @@ import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, Trash } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchSpecialItems } from '@/services/api';
 import ProductCard from '@/components/Products/ProductCard';
+import SpecialItemCard from '@/components/SpecialItems/SpecialItemCard';
 import { Database } from '@/integrations/supabase/types';
 
 type Product = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
 };
 
+type SpecialItem = Database['public']['Tables']['special_items']['Row'];
+
 const Cart = () => {
   const navigate = useNavigate();
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
   const [additionalProducts, setAdditionalProducts] = useState<Product[]>([]);
+  const [specialItems, setSpecialItems] = useState<SpecialItem[]>([]);
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
-    const fetchAdditionalProducts = async () => {
+    const fetchItems = async () => {
       setLoading(true);
       try {
-        // First, find the "produtos-adicionais" category
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('*')
-          .or('slug.eq.produtos-adicionais,name.ilike.%produtos adicionais%')
-          .maybeSingle();
-        
-        if (categoryData) {
-          // Then fetch products from that category
-          const { data: productsData, error: productsError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('category_id', categoryData.id);
-          
-          if (productsError) throw productsError;
-          
-          if (productsData) {
-            // Fetch images for each product
-            const productsWithImages = await Promise.all(
-              productsData.map(async (product) => {
-                const { data: images } = await supabase
-                  .from('product_images')
-                  .select('*')
-                  .eq('product_id', product.id);
-                
-                return { ...product, images: images || [] };
-              })
-            );
-            
-            setAdditionalProducts(productsWithImages);
-          }
-        } else {
-          // If category doesn't exist, try to create it
-          console.log("Produtos adicionais category doesn't exist");
-        }
+        // Fetch special items
+        const specialItemsData = await fetchSpecialItems();
+        setSpecialItems(specialItemsData);
       } catch (error) {
-        console.error('Error fetching additional products:', error);
+        console.error('Error fetching special items:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchAdditionalProducts();
+    fetchItems();
   }, []);
   
   const handleQuantityChange = (id: string, newQuantity: number) => {
@@ -183,21 +155,15 @@ const Cart = () => {
           </div>
         )}
         
-        {/* Additional Items Section */}
-        {items.length > 0 && additionalProducts.length > 0 && (
+        {/* Special Items Section */}
+        {items.length > 0 && specialItems.length > 0 && (
           <section className="mt-12">
             <h2 className="text-xl md:text-2xl font-playfair font-semibold mb-6">
-              Adicione mais itens ao seu pedido
+              Adicione itens especiais ao seu pedido
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {additionalProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  title={product.title}
-                  price={Number(product.price)}
-                  imageUrl={product.images[0]?.url || '/placeholder.svg'}
-                />
+              {specialItems.map((item) => (
+                <SpecialItemCard key={item.id} item={item} />
               ))}
             </div>
           </section>
@@ -205,7 +171,7 @@ const Cart = () => {
         
         {loading && (
           <div className="text-center py-8">
-            Carregando produtos adicionais...
+            Carregando itens especiais...
           </div>
         )}
       </div>

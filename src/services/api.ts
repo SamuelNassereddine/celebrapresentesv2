@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,6 +7,7 @@ type Product = Database['public']['Tables']['products']['Row'];
 type ProductImage = Database['public']['Tables']['product_images']['Row'];
 type DeliveryTimeSlot = Database['public']['Tables']['delivery_time_slots']['Row'];
 type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
+type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
 export const fetchStoreSettings = async (): Promise<StoreSettings | null> => {
   const { data, error } = await supabase
@@ -186,4 +186,63 @@ export const deleteProductImageFromStorage = async (url: string): Promise<boolea
     console.error('Erro ao excluir imagem:', error);
     return false;
   }
+};
+
+// New functions for special items
+export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
+  const { data, error } = await supabase
+    .from('special_items')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching special items:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+export const createSpecialItem = async (item: Omit<SpecialItem, 'id' | 'created_at' | 'updated_at'>): Promise<SpecialItem | null> => {
+  const { data, error } = await supabase
+    .from('special_items')
+    .insert(item)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating special item:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const updateSpecialItem = async (id: string, updates: Partial<Omit<SpecialItem, 'id' | 'created_at' | 'updated_at'>>): Promise<SpecialItem | null> => {
+  const { data, error } = await supabase
+    .from('special_items')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating special item:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const deleteSpecialItem = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('special_items')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting special item:', error);
+    return false;
+  }
+  
+  return true;
 };

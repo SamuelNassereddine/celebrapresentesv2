@@ -25,6 +25,7 @@
   - [x] Etapa 3: Personalização
   - [x] Etapa 4: Pagamento
 - [x] Adicionar seção de produtos adicionais no carrinho
+- [x] Implementar seção de itens especiais no carrinho
 - [x] Remover opção de pagamento via PIX
 - [x] Integrar pedidos com Supabase
 - [x] Implementar auto-preenchimento de endereço por CEP
@@ -37,6 +38,7 @@
 - [x] Criar visualização de calendário para entregas
 - [x] Desenvolver página de configurações da loja
 - [x] Implementar gerenciamento de horários de entrega
+- [x] Implementar gerenciamento de itens especiais
 
 ## Integrações:
 - [x] Configurar busca por CEP com ViaCEP
@@ -60,6 +62,7 @@
   - [x] orders
   - [x] order_items
   - [x] delivery_time_slots
+  - [x] special_items
 - [x] Configurar políticas de Row Level Security (RLS)
 
 ## Próximos Passos:
@@ -72,6 +75,7 @@
 
 ## Melhorias recentes:
 - [x] Adicionar seção de produtos adicionais no carrinho
+- [x] Adicionar seção de itens especiais no carrinho
 - [x] Remover opção de pagamento via PIX
 - [x] Integrar pedidos com Supabase
 - [x] Auto-preenchimento de endereço por CEP

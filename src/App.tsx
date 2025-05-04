@@ -26,6 +26,8 @@ const AdminProducts = lazy(() => import('@/pages/admin/Products'));
 const AdminProductForm = lazy(() => import('@/pages/admin/Products/ProductForm'));
 const AdminCategories = lazy(() => import('@/pages/admin/Categories'));
 const AdminCategoryForm = lazy(() => import('@/pages/admin/Categories/CategoryForm'));
+const AdminSpecialItems = lazy(() => import('@/pages/admin/SpecialItems'));
+const AdminSpecialItemForm = lazy(() => import('@/pages/admin/SpecialItems/SpecialItemForm'));
 const AdminOrders = lazy(() => import('@/pages/admin/Orders'));
 const AdminCalendar = lazy(() => import('@/pages/admin/Calendar'));
 const AdminSettings = lazy(() => import('@/pages/admin/Settings'));
@@ -61,6 +63,9 @@ function App() {
               <Route path="/admin/categories" element={<AdminCategories />} />
               <Route path="/admin/categories/new" element={<AdminCategoryForm />} />
               <Route path="/admin/categories/:id" element={<AdminCategoryForm />} />
+              <Route path="/admin/special-items" element={<AdminSpecialItems />} />
+              <Route path="/admin/special-items/new" element={<AdminSpecialItemForm />} />
+              <Route path="/admin/special-items/:id" element={<AdminSpecialItemForm />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/calendar" element={<AdminCalendar />} />
               <Route path="/admin/settings" element={<AdminSettings />} />

@@ -9,10 +9,10 @@ import {
   Settings,
   Users,
   Menu,
-  X,
   ChevronDown,
   ChevronUp,
   Tags,
+  Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,7 +27,9 @@ const AdminSidebar = () => {
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(
-    location.pathname.startsWith('/admin/products') || location.pathname.startsWith('/admin/categories')
+    location.pathname.startsWith('/admin/products') || 
+    location.pathname.startsWith('/admin/categories') ||
+    location.pathname.startsWith('/admin/special-items')
       ? 'products'
       : null
   );
@@ -73,6 +75,7 @@ const AdminSidebar = () => {
       submenu: [
         { path: '/admin/categories', icon: <Tags size={16} />, label: 'Categorias', role: 'editor' },
         { path: '/admin/products', icon: <Package size={16} />, label: 'Produtos', role: 'editor' },
+        { path: '/admin/special-items', icon: <Gift size={16} />, label: 'Itens Especiais', role: 'editor' },
       ],
       isExpanded: expandedMenu === 'products',
     },
@@ -126,7 +129,7 @@ const AdminSidebar = () => {
                       onClick={() => toggleExpandMenu(item.id)}
                       className={`
                         w-full flex items-center justify-between px-3 py-2 text-sm rounded-md
-                        ${isLinkActive('/admin/products') || isLinkActive('/admin/categories')
+                        ${isLinkActive('/admin/products') || isLinkActive('/admin/categories') || isLinkActive('/admin/special-items')
                           ? 'bg-accent text-accent-foreground font-medium'
                           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
                       `}
