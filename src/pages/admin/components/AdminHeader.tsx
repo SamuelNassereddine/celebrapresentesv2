@@ -1,17 +1,27 @@
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { User } from 'lucide-react';
+import { User, Menu } from 'lucide-react';
 import MobileNav from './MobileNav';
 
 const AdminHeader = () => {
   const { user } = useAuth();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200 h-16">
       <div className="h-full px-4 flex items-center justify-between">
         <div className="flex items-center">
-          <MobileNav />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+            onClick={() => setIsMobileNavOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
         </div>
         
         <div className="flex items-center">

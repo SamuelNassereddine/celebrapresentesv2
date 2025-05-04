@@ -17,13 +17,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
-import useMobile from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import MobileNav from './MobileNav';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const { role } = useAuth();
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(

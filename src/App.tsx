@@ -6,7 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 
 // Import pages
-const Index = lazy(() => import('@/pages/Index'));
+const Home = lazy(() => import('@/pages/Home'));
 const Products = lazy(() => import('@/pages/Products'));
 const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
 const Cart = lazy(() => import('@/pages/Cart'));
@@ -39,7 +39,7 @@ function App() {
           <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/category/:slug" element={<Products />} />
