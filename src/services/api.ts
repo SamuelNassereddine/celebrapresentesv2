@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -256,4 +255,77 @@ export const deleteSpecialItem = async (id: string): Promise<boolean> => {
   }
   
   return true;
+};
+
+// Nova interface para dados de pedido
+export interface OrderData {
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+  recipient_name: string | null;
+  address_street: string | null;
+  address_number: string | null;
+  address_complement: string | null;
+  address_neighborhood: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_zipcode: string | null;
+  delivery_date: string | null;
+  delivery_time_slot_id: string | null;
+  personalization_text: string | null;
+  total_price: number;
+  status: string;
+}
+
+// Nova interface para itens do pedido
+export interface OrderItemData {
+  order_id: string;
+  product_id: string;
+  product_title: string;
+  unit_price: number;
+  quantity: number;
+}
+
+// Nova função para salvar pedidos
+export const saveOrder = async (
+  orderData: OrderData,
+  orderItems: Omit<OrderItemData, 'order_id'>[]
+): Promise<{success: boolean; orderId?: string; error?: any}> => {
+  try {
+    // Salvar o pedido
+    const { data: createdOrder, error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData)
+      .select()
+      .single();
+    
+    if (orderError) {
+      console.error('Error saving order:', orderError);
+      return { success: false, error: orderError };
+    }
+    
+    if (!createdOrder) {
+      return { success: false, error: 'Não foi possível criar o pedido' };
+    }
+    
+    // Salvar os itens do pedido
+    const itemsWithOrderId = orderItems.map(item => ({
+      ...item,
+      order_id: createdOrder.id
+    }));
+    
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(itemsWithOrderId);
+    
+    if (itemsError) {
+      console.error('Error saving order items:', itemsError);
+      return { success: false, error: itemsError };
+    }
+    
+    return { success: true, orderId: createdOrder.id };
+  } catch (error) {
+    console.error('Error in saveOrder function:', error);
+    return { success: false, error };
+  }
 };

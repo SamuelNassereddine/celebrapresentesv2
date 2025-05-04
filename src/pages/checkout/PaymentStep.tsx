@@ -9,24 +9,50 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
-
-// Store settings - ideally this would come from the database
-const storeSettings = {
-  whatsappNumber: '5511987965672'
-};
+import { saveOrder } from '@/services/api';
+import { fetchStoreSettings } from '@/services/api';
 
 const PaymentStep = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const [orderNumber, setOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [storeSettings, setStoreSettings] = useState({ whatsappNumber: '5511987965672' });
   
   useEffect(() => {
     // Generate a random order number
     const randomOrderNum = Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(randomOrderNum.toString());
+    
+    // Fetch store settings
+    const getStoreSettings = async () => {
+      const settings = await fetchStoreSettings();
+      if (settings && settings.whatsapp_number) {
+        setStoreSettings(prevSettings => ({
+          ...prevSettings,
+          whatsappNumber: settings.whatsapp_number
+        }));
+      }
+    };
+    
+    getStoreSettings();
   }, []);
+  
+  // Verificar se há dados de checkout
+  const checkoutDataExists = () => {
+    const identification = localStorage.getItem('checkoutIdentification');
+    const delivery = localStorage.getItem('checkoutDelivery');
+    
+    return !!identification && !!delivery;
+  };
+  
+  // Redirecionar se não tiver dados completos
+  useEffect(() => {
+    if (!checkoutDataExists()) {
+      toast.error('É necessário preencher os dados de identificação e entrega');
+      navigate('/checkout/1');
+    }
+  }, [navigate]);
   
   // Get all checkout data
   const getCheckoutData = () => {
@@ -87,70 +113,38 @@ const PaymentStep = () => {
     return encodeURIComponent(message);
   };
   
-  const saveOrderToDatabase = async () => {
-    try {
-      const data = getCheckoutData();
-      
-      // Como estamos usando RLS para permitir inserções anônimas,
-      // vamos garantir que o objeto de dados esteja correto e completo
-      const orderData = {
-        customer_name: data.identification.name,
-        customer_phone: data.identification.phone,
-        customer_email: data.identification.email || null,
-        recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
-        address_street: data.delivery.street,
-        address_number: data.delivery.number,
-        address_complement: data.delivery.complement || null,
-        address_neighborhood: data.delivery.neighborhood,
-        address_city: data.delivery.city,
-        address_state: data.delivery.state,
-        address_zipcode: data.delivery.cep,
-        delivery_date: data.delivery.deliveryDate,
-        delivery_time_slot_id: data.delivery.deliveryTimeSlot,
-        personalization_text: data.personalization.message || null,
-        total_price: data.totalPrice,
-        status: 'pending'
-      };
-      
-      // Inserir o pedido
-      const { data: createdOrder, error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData)
-        .select()
-        .single();
-      
-      if (orderError) {
-        console.error('Error saving order to database:', orderError);
-        throw orderError;
-      }
-      
-      if (!createdOrder) {
-        throw new Error('Não foi possível criar o pedido');
-      }
-      
-      // Inserir os itens do pedido
-      const orderItems = data.items.map(item => ({
-        order_id: createdOrder.id,
-        product_id: item.id,
-        product_title: item.title,
-        unit_price: item.price,
-        quantity: item.quantity
-      }));
-      
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-      
-      if (itemsError) {
-        console.error('Error saving order items:', itemsError);
-        throw itemsError;
-      }
-      
-      return createdOrder;
-    } catch (error) {
-      console.error('Error saving order to database:', error);
-      throw error;
-    }
+  const prepareOrderData = () => {
+    const data = getCheckoutData();
+    
+    // Preparar dados de acordo com o esquema da tabela orders
+    return {
+      customer_name: data.identification.name,
+      customer_phone: data.identification.phone,
+      customer_email: data.identification.email || null,
+      recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
+      address_street: data.delivery.street,
+      address_number: data.delivery.number,
+      address_complement: data.delivery.complement || null,
+      address_neighborhood: data.delivery.neighborhood,
+      address_city: data.delivery.city,
+      address_state: data.delivery.state,
+      address_zipcode: data.delivery.cep,
+      delivery_date: data.delivery.deliveryDate,
+      delivery_time_slot_id: data.delivery.deliveryTimeSlot,
+      personalization_text: data.personalization.message || null,
+      total_price: data.totalPrice,
+      status: 'pending'
+    };
+  };
+  
+  const prepareOrderItems = () => {
+    // Preparar itens do pedido de acordo com o esquema da tabela order_items
+    return items.map(item => ({
+      product_id: item.id,
+      product_title: item.title,
+      unit_price: item.price,
+      quantity: item.quantity
+    }));
   };
   
   const handleWhatsAppCheckout = async () => {
@@ -163,10 +157,20 @@ const PaymentStep = () => {
       // pelo menos o cliente possa enviar a mensagem via WhatsApp
       const message = formatWhatsAppMessage();
       
+      // Preparar dados para salvar no banco de dados
+      const orderData = prepareOrderData();
+      const orderItems = prepareOrderItems();
+      
       try {
-        // Tenta salvar no banco
-        await saveOrderToDatabase();
-        toast.success('Pedido registrado com sucesso!');
+        // Tenta salvar no banco usando a nova função
+        const result = await saveOrder(orderData, orderItems);
+        
+        if (result.success) {
+          toast.success('Pedido registrado com sucesso!');
+        } else {
+          console.error('Erro ao salvar pedido:', result.error);
+          toast.error('Não foi possível salvar o pedido no sistema, mas você pode continuar via WhatsApp');
+        }
       } catch (dbError) {
         // Se falhar em salvar no banco, apenas mostra um aviso mas continua para WhatsApp
         console.error('Não foi possível salvar o pedido no banco de dados:', dbError);
