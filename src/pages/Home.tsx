@@ -1,13 +1,36 @@
 
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import ProductCard from '@/components/Products/ProductCard';
 import CategoryCard from '@/components/Products/CategoryCard';
-import { mockCategories, mockProducts } from '@/data/mockData';
 import ProductAddedNotification from '@/components/Cart/ProductAddedNotification';
+import { fetchCategories, fetchProducts } from '@/services/api';
+import { Database } from '@/integrations/supabase/types';
+
+type Category = Database['public']['Tables']['categories']['Row'];
+type Product = Database['public']['Tables']['products']['Row'] & { 
+  images: Database['public']['Tables']['product_images']['Row'][] 
+};
 
 const Home = () => {
-  const featuredProducts = mockProducts.slice(0, 4);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const categoriesData = await fetchCategories();
+      const productsData = await fetchProducts();
+      
+      setCategories(categoriesData);
+      setFeaturedProducts(productsData.slice(0, 4)); // Only show 4 featured products
+      setLoading(false);
+    };
+    
+    loadData();
+  }, []);
 
   return (
     <Layout>
@@ -36,17 +59,21 @@ const Home = () => {
         <h2 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">
           Categorias
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {mockCategories.map((category) => (
-            <CategoryCard
-              key={category.id}
-              id={category.id}
-              name={category.name}
-              slug={category.slug}
-              icon={category.icon}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-8">Carregando categorias...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {categories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                id={category.id}
+                name={category.name}
+                slug={category.slug}
+                icon={category.icon || ''}
+              />
+            ))}
+          </div>
+        )}
       </section>
       
       {/* Featured Products Section */}
@@ -54,25 +81,31 @@ const Home = () => {
         <h2 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">
           Produtos em Destaque
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              title={product.title}
-              price={product.price}
-              imageUrl={product.images[0].url}
-            />
-          ))}
-        </div>
-        <div className="mt-8 text-center">
-          <Link 
-            to="/products" 
-            className="inline-block bg-primary text-primary-foreground font-medium py-2.5 px-8 rounded-md hover:bg-opacity-90 transition duration-200"
-          >
-            Ver todos os produtos
-          </Link>
-        </div>
+        {loading ? (
+          <div className="text-center py-8">Carregando produtos...</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  price={Number(product.price)}
+                  imageUrl={product.images[0]?.url || '/placeholder.svg'}
+                />
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link 
+                to="/products" 
+                className="inline-block bg-primary text-primary-foreground font-medium py-2.5 px-8 rounded-md hover:bg-opacity-90 transition duration-200"
+              >
+                Ver todos os produtos
+              </Link>
+            </div>
+          </>
+        )}
       </section>
       
       {/* Testimonial Section */}

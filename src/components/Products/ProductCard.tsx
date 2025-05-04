@@ -57,7 +57,8 @@ const ProductCard = ({ id, title, price, imageUrl }: ProductCardProps) => {
           </div>
         </div>
         <div className="p-4 flex flex-col flex-grow">
-          <h3 className="text-gray-800 font-medium text-lg mb-1 line-clamp-1">{title}</h3>
+          {/* Changed line-clamp-1 to line-clamp-2 to show more of the title */}
+          <h3 className="text-gray-800 font-medium text-lg mb-1 line-clamp-2 h-14">{title}</h3>
           <p className="text-primary-foreground font-semibold mt-auto">
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
               .format(price)}

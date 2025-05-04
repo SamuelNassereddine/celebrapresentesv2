@@ -2,13 +2,21 @@
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout/Layout';
 import ProductCard from '@/components/Products/ProductCard';
-import { mockCategories, mockProducts } from '@/data/mockData';
 import ProductAddedNotification from '@/components/Cart/ProductAddedNotification';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
+import { fetchCategories, fetchProducts } from '@/services/api';
+import { Database } from '@/integrations/supabase/types';
+
+type Category = Database['public']['Tables']['categories']['Row'];
+type Product = Database['public']['Tables']['products']['Row'] & { 
+  images: Database['public']['Tables']['product_images']['Row'][] 
+};
 
 const Products = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
@@ -16,15 +24,27 @@ const Products = () => {
   
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
+  useEffect(() => {
+    const loadData = async () => {
+      const categoriesData = await fetchCategories();
+      const productsData = await fetchProducts();
+      
+      setCategories(categoriesData);
+      setProducts(productsData);
+    };
+    
+    loadData();
+  }, []);
+  
   // Filter products based on category, search term, and price range
-  const filteredProducts = mockProducts
-    .filter(product => selectedCategory === 'all' || product.categoryId === selectedCategory)
+  const filteredProducts = products
+    .filter(product => selectedCategory === 'all' || product.category_id === selectedCategory)
     .filter(product => 
       product.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      (product.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ?? false)
     )
     .filter(product => 
-      product.price >= priceRange.min && product.price <= priceRange.max
+      Number(product.price) >= priceRange.min && Number(product.price) <= priceRange.max
     );
 
   return (
@@ -72,7 +92,7 @@ const Products = () => {
             >
               Todos
             </button>
-            {mockCategories.map(category => (
+            {categories.map(category => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
@@ -137,8 +157,8 @@ const Products = () => {
               key={product.id}
               id={product.id}
               title={product.title}
-              price={product.price}
-              imageUrl={product.images[0].url}
+              price={Number(product.price)}
+              imageUrl={product.images[0]?.url || '/placeholder.svg'}
             />
           ))}
         </div>

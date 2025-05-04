@@ -5,13 +5,13 @@
 - [x] Criar estrutura inicial do projeto React com Vite
 - [x] Configurar Tailwind CSS
 - [x] Configurar rotas com React Router
-- [ ] Configurar projeto com Supabase
-- [ ] Criar tabelas no Supabase
+- [x] Configurar projeto com Supabase
+- [x] Criar tabelas no Supabase
 
 ## Back-end:
-- [ ] Implementar APIs para produtos, categorias, pedidos, configurações
-- [ ] Configurar autenticação para admin_users
-- [ ] Criar middleware de permissões (master, editor, viewer)
+- [x] Implementar APIs para produtos, categorias, pedidos, configurações
+- [x] Configurar autenticação para admin_users
+- [x] Criar middleware de permissões (master, editor, viewer)
 - [ ] Implementar sistema de upload de imagens
 
 ## Front-end (Cliente):
@@ -43,13 +43,13 @@
 - [ ] Testar personalização do catálogo
 - [ ] Verificar fluxo completo de compra
 
-## Supabase (Pendente):
-- [ ] Configurar tabelas:
-  - [ ] store_settings
-  - [ ] admin_users
-  - [ ] categories
-  - [ ] products
-  - [ ] product_images
-  - [ ] orders
-  - [ ] order_items
-  - [ ] delivery_time_slots
+## Supabase (Concluído):
+- [x] Configurar tabelas:
+  - [x] store_settings
+  - [x] admin_users
+  - [x] categories
+  - [x] products
+  - [x] product_images
+  - [x] orders
+  - [x] order_items
+  - [x] delivery_time_slots

@@ -1,20 +1,48 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import { useCart } from '@/context/CartContext';
-import { getProductById } from '@/data/mockData';
 import ProductAddedNotification from '@/components/Cart/ProductAddedNotification';
 import { useToast } from '@/hooks/use-toast';
+import { fetchProductById } from '@/services/api';
+import { Database } from '@/integrations/supabase/types';
+
+type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
+  images: Database['public']['Tables']['product_images']['Row'][] 
+};
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<ProductWithImages | null>(null);
+  const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
   const { toast } = useToast();
   
-  const product = getProductById(id || '');
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      const productData = await fetchProductById(id);
+      setProduct(productData);
+      setLoading(false);
+    };
+    
+    loadProduct();
+  }, [id]);
+  
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <p>Carregando produto...</p>
+        </div>
+      </Layout>
+    );
+  }
   
   if (!product) {
     return (
@@ -37,9 +65,9 @@ const ProductDetail = () => {
     addItem({
       id: product.id,
       title: product.title,
-      price: product.price,
+      price: Number(product.price),
       quantity: quantity,
-      image: product.images[0].url
+      image: product.images[0]?.url || '/placeholder.svg'
     });
     
     toast({
@@ -56,7 +84,7 @@ const ProductDetail = () => {
             {/* Product Image */}
             <div className="bg-white rounded-lg overflow-hidden shadow-sm">
               <img 
-                src={product.images[0].url} 
+                src={product.images[0]?.url || '/placeholder.svg'} 
                 alt={product.title}
                 className="w-full h-auto object-cover"
               />
@@ -67,7 +95,7 @@ const ProductDetail = () => {
               <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-3">{product.title}</h1>
               <p className="text-2xl text-primary-foreground font-semibold mb-6">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-                  .format(product.price)}
+                  .format(Number(product.price))}
               </p>
               
               <div className="mb-8">
