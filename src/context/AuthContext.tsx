@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .from('admin_users')
             .select('*')
             .eq('id', session.user?.id)
-            .single();
+            .maybeSingle();
             
           if (adminUser) {
             setUser({ email: adminUser.email });
@@ -51,9 +51,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     try {
-      // Manual authentication with hardcoded credentials
+      // Para login com admin/admin@2025
       if (email === 'admin' && password === 'admin@2025') {
-        // Create a session for the admin user in Supabase
+        // Sign in with Supabase
         const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
           email: 'admin@example.com',
           password: 'admin@2025',
@@ -126,13 +126,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    // Sign out from Supabase
-    await supabase.auth.signOut();
-    
-    // Clear local state
-    setUser(null);
-    setRole(null);
-    toast.success('Logout realizado com sucesso');
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear local state
+      setUser(null);
+      setRole(null);
+      toast.success('Logout realizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
   };
 
   const contextValue = {

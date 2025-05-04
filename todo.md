@@ -48,7 +48,7 @@
 - [ ] Validar filtros e relatórios do painel administrativo
 - [ ] Testar personalização do catálogo
 - [ ] Verificar fluxo completo de compra
-- [ ] Testar permissões de usuário admin
+- [x] Testar permissões de usuário admin
 
 ## Supabase (Concluído):
 - [x] Configurar tabelas:

@@ -31,6 +31,7 @@ const Login = () => {
       await signIn(email, password);
       navigate('/admin');
     } catch (err: any) {
+      console.error("Erro de login:", err);
       setError(err.message || 'Ocorreu um erro ao realizar o login.');
     } finally {
       setLoading(false);
