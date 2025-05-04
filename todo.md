@@ -25,12 +25,12 @@
   - [x] Etapa 4: Pagamento
 
 ## Front-end (Admin):
-- [ ] Criar dashboard administrativo
-- [ ] Implementar autenticação e controle de acesso
-- [ ] Desenvolver páginas de gerenciamento de produtos
-- [ ] Implementar páginas de pedidos com filtros
-- [ ] Criar visualização de calendário para entregas
-- [ ] Desenvolver página de configurações da loja
+- [x] Criar dashboard administrativo
+- [x] Implementar autenticação e controle de acesso
+- [x] Desenvolver páginas de gerenciamento de produtos
+- [x] Implementar páginas de pedidos com filtros
+- [x] Criar visualização de calendário para entregas
+- [x] Desenvolver página de configurações da loja
 
 ## Integrações:
 - [x] Configurar busca por CEP com ViaCEP
@@ -53,3 +53,11 @@
   - [x] orders
   - [x] order_items
   - [x] delivery_time_slots
+
+## Próximos Passos:
+- [ ] Implementar sistema de upload de imagens
+- [ ] Criar detalhes de pedido na página de pedidos admin
+- [ ] Adicionar formulário de edição de produto
+- [ ] Implementar página de detalhes de pedido
+- [ ] Adicionar estatísticas no dashboard
+- [ ] Implementar exportação de relatórios

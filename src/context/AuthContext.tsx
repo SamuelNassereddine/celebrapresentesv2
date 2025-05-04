@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { getUserRole } from '@/services/auth';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -66,6 +67,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       throw error;
     }
+    
+    // Check if user is an admin
+    if (data.user) {
+      const userRole = await getUserRole(data.user.id);
+      if (!userRole) {
+        // User exists but is not in admin_users table
+        await supabase.auth.signOut();
+        setLoading(false);
+        throw new Error('Usuário não possui permissão de acesso.');
+      }
+      setRole(userRole);
+    }
+    
+    setLoading(false);
+    toast.success('Login realizado com sucesso');
   };
 
   const signOut = async () => {
@@ -77,6 +93,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       throw error;
     }
+    
+    setUser(null);
+    setRole(null);
+    setLoading(false);
+    toast.success('Logout realizado com sucesso');
   };
 
   const checkIsAdmin = async () => {

@@ -19,6 +19,15 @@ import Confirmation from "./pages/checkout/Confirmation";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 
+// Admin routes
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/Products";
+import AdminOrders from "./pages/admin/Orders";
+import AdminCalendar from "./pages/admin/Calendar";
+import AdminSettings from "./pages/admin/Settings";
+import AdminUsers from "./pages/admin/Users";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -39,6 +48,16 @@ const App = () => (
               <Route path="/checkout/3" element={<PersonalizationStep />} />
               <Route path="/checkout/4" element={<PaymentStep />} />
               <Route path="/checkout/confirmation" element={<Confirmation />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/calendar" element={<AdminCalendar />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
