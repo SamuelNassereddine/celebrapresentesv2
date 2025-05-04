@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Eye, User } from 'lucide-react';
+import { Search, Eye, RefreshCw } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -137,8 +137,13 @@ const Orders = () => {
       </div>
 
       <div className="bg-white border rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-2">Pedidos</h2>
-        <p className="text-gray-500 mb-6">Listagem de todos os pedidos da loja.</p>
+        <div className="flex justify-between mb-6">
+          <h2 className="text-xl font-semibold">Pedidos</h2>
+          <Button onClick={fetchOrders} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
 
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-grow">
@@ -211,20 +216,12 @@ const Orders = () => {
                       {formatCurrency(Number(order.total_price))}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" asChild title="Ver">
-                          <Link to={`/admin/orders/${order.id}`}>
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Ver</span>
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon" asChild title="Perfil">
-                          <Link to={`/admin/orders/${order.id}`}>
-                            <User className="h-4 w-4" />
-                            <span className="sr-only">Perfil</span>
-                          </Link>
-                        </Button>
-                      </div>
+                      <Button variant="ghost" size="icon" asChild title="Ver detalhes">
+                        <Link to={`/admin/orders/${order.id}`}>
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">Ver detalhes</span>
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

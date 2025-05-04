@@ -77,7 +77,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-          <Toaster />
+          <Toaster position="top-right" richColors />
         </CartProvider>
       </AuthProvider>
     </Router>

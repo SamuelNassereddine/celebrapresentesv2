@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { saveOrder } from '@/services/api';
 import { fetchStoreSettings } from '@/services/api';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 const PaymentStep = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const PaymentStep = () => {
   const [orderNumber, setOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [storeSettings, setStoreSettings] = useState({ whatsappNumber: '5511987965672' });
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     // Generate a random order number
@@ -134,7 +136,7 @@ const PaymentStep = () => {
       personalization_text: data.personalization.message || null,
       total_price: data.totalPrice,
       status: 'pending',
-      order_number: orderNumber // Número do pedido (agora está presente na tabela)
+      order_number: orderNumber
     };
   };
   
@@ -153,6 +155,7 @@ const PaymentStep = () => {
     
     try {
       setIsSubmitting(true);
+      setError(null);
       
       // Preparar a mensagem antes de salvar para que se houver erro no banco,
       // pelo menos o cliente possa enviar a mensagem via WhatsApp
@@ -171,31 +174,40 @@ const PaymentStep = () => {
         if (result.success) {
           toast.success('Pedido registrado com sucesso!');
           console.log('Pedido salvo com sucesso, ID:', result.orderId);
+          
+          // Clear the cart and checkout data
+          clearCart();
+          localStorage.removeItem('checkoutIdentification');
+          localStorage.removeItem('checkoutDelivery');
+          localStorage.removeItem('checkoutPersonalization');
+          
+          // Open WhatsApp in a new tab
+          const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+          window.open(whatsappUrl, '_blank');
+          
+          // Navigate to confirmation page
+          navigate('/checkout/confirmation');
         } else {
           console.error('Erro ao salvar pedido:', result.error);
+          setError('Falha ao salvar o pedido no sistema. Você ainda pode continuar via WhatsApp.');
           toast.error('Não foi possível salvar o pedido no sistema, mas você pode continuar via WhatsApp');
+          
+          // Mesmo com erro, permite abrir o WhatsApp
+          const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+          window.open(whatsappUrl, '_blank');
         }
       } catch (dbError) {
         // Se falhar em salvar no banco, apenas mostra um aviso mas continua para WhatsApp
         console.error('Não foi possível salvar o pedido no banco de dados:', dbError);
+        setError('Falha ao salvar o pedido. Você ainda pode continuar via WhatsApp.');
         toast.error('Não foi possível salvar o pedido, mas você pode continuar via WhatsApp');
+        
+        // Independente do resultado do banco, permite continuar para o WhatsApp
+        const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+        window.open(whatsappUrl, '_blank');
       }
-      
-      // Independente do resultado do banco, permite continuar para o WhatsApp
-      const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
-      
-      // Clear the cart and checkout data
-      clearCart();
-      localStorage.removeItem('checkoutIdentification');
-      localStorage.removeItem('checkoutDelivery');
-      localStorage.removeItem('checkoutPersonalization');
-      
-      // Open WhatsApp in a new tab
-      window.open(whatsappUrl, '_blank');
-      
-      // Navigate to confirmation page
-      navigate('/checkout/confirmation');
     } catch (error) {
+      setError('Erro ao processar o pedido. Tente novamente ou continue via WhatsApp.');
       toast.error('Erro ao finalizar pedido. Tente novamente.');
       console.error('Error during checkout:', error);
     } finally {
@@ -210,6 +222,13 @@ const PaymentStep = () => {
         
         <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
           <h2 className="text-2xl font-playfair font-semibold mb-6">Pagamento</h2>
+          
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           
           <div className="space-y-6">
             <div>
@@ -242,7 +261,12 @@ const PaymentStep = () => {
                       className="w-full md:w-auto"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Processando...' : 'Finalizar pelo WhatsApp'}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processando...
+                        </>
+                      ) : 'Finalizar pelo WhatsApp'}
                     </Button>
                   </div>
                 </CardContent>
