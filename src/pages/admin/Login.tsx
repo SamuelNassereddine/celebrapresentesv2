@@ -27,26 +27,12 @@ const Login = () => {
     setLoading(true);
     setError(null);
     
-    console.log('🔐 Login: Tentando login com:', email);
-
     try {
-      console.log('🔐 Login: Chamando função signIn...');
       await signIn(email, password);
-      console.log('🔐 Login: Login bem-sucedido!');
       navigate('/admin');
     } catch (err: any) {
-      console.error('🔐 Login: Erro no login:', err);
-      
-      // Handle specific error messages
-      if (err.message === 'Invalid login credentials') {
-        setError('Credenciais inválidas. Verifique seu email e senha.');
-      } else if (err.message === 'Usuário não possui permissão de acesso.') {
-        setError('Este usuário não possui permissão para acessar a área administrativa.');
-      } else {
-        setError(err.message || 'Ocorreu um erro ao realizar o login.');
-      }
+      setError(err.message || 'Ocorreu um erro ao realizar o login.');
     } finally {
-      console.log('🔐 Login: Processo de login finalizado');
       setLoading(false);
     }
   };
@@ -68,17 +54,16 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              Usuário
             </label>
             <Input
               id="email"
-              type="email"
-              placeholder="seu@email.com"
+              type="text"
+              placeholder="admin"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              autoComplete="email"
               className="w-full"
             />
           </div>
@@ -95,7 +80,6 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              autoComplete="current-password"
               className="w-full"
             />
           </div>
@@ -117,7 +101,7 @@ const Login = () => {
         </form>
         
         <div className="text-center text-sm text-gray-500">
-          <p>Somente usuários administrativos têm acesso a esta área.</p>
+          <p>Credenciais de acesso: admin / admin@2025</p>
         </div>
       </div>
     </div>
