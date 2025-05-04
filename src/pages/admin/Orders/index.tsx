@@ -25,7 +25,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-type Order = Database['public']['Tables']['orders']['Row'];
+// Estendemos o tipo Order do Supabase para garantir que order_number seja reconhecido
+type Order = Database['public']['Tables']['orders']['Row'] & {
+  order_number?: string | null;
+};
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',

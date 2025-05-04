@@ -154,6 +154,7 @@ export type Database = {
           delivery_date: string | null
           delivery_time_slot_id: string | null
           id: string
+          order_number: string | null
           personalization_text: string | null
           recipient_name: string | null
           status: string
@@ -175,6 +176,7 @@ export type Database = {
           delivery_date?: string | null
           delivery_time_slot_id?: string | null
           id?: string
+          order_number?: string | null
           personalization_text?: string | null
           recipient_name?: string | null
           status?: string
@@ -196,6 +198,7 @@ export type Database = {
           delivery_date?: string | null
           delivery_time_slot_id?: string | null
           id?: string
+          order_number?: string | null
           personalization_text?: string | null
           recipient_name?: string | null
           status?: string
