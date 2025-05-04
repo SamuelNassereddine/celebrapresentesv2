@@ -88,6 +88,7 @@ export const getUserRole = async (userId: string): Promise<string | null> => {
   console.log('🔍 getUserRole: Looking up role for user ID:', userId);
   
   try {
+    // Direct query to admin_users table
     const { data, error } = await supabase
       .from('admin_users')
       .select('role')

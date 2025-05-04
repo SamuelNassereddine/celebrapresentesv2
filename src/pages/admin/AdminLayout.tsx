@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Loader } from 'lucide-react';
@@ -14,46 +14,61 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children, requiredRole = 'viewer' }: AdminLayoutProps) => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const [isCheckingRole, setIsCheckingRole] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
-    // If not loading and no user, redirect to login
-    if (!loading && !user) {
-      navigate('/admin/login');
+    // Check if role is loaded yet
+    if (!loading) {
+      console.log('🔑 AdminLayout: Auth loaded, user:', !!user, 'role:', role);
+      
+      // If user is not authenticated, redirect to login
+      if (!user) {
+        console.log('🔑 AdminLayout: No user, redirecting to login');
+        navigate('/admin/login');
+        return;
+      }
+      
+      // Check role permissions
+      const checkAccess = () => {
+        if (!role) {
+          console.log('🔑 AdminLayout: No role detected');
+          return false;
+        }
+        
+        switch(requiredRole) {
+          case 'master':
+            return role === 'master';
+          case 'editor':
+            return ['master', 'editor'].includes(role);
+          case 'viewer':
+            return ['master', 'editor', 'viewer'].includes(role);
+          default:
+            return false;
+        }
+      };
+      
+      const access = checkAccess();
+      console.log('🔑 AdminLayout: Access check result:', access);
+      setHasAccess(access);
+      setIsCheckingRole(false);
     }
-  }, [user, loading, navigate]);
+  }, [user, role, loading, navigate, requiredRole]);
 
-  // Show loading state
-  if (loading) {
+  // Show loading state while checking authentication
+  if (loading || isCheckingRole) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader className="w-8 h-8 animate-spin" />
-        <span className="ml-2">Carregando...</span>
+        <div className="flex flex-col items-center gap-3">
+          <Loader className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-gray-600">Verificando permissões...</span>
+        </div>
       </div>
     );
   }
 
-  // Check if user is logged in
-  if (!user) {
-    return <Navigate to="/admin/login" />;
-  }
-
   // Check if user has required role
-  const hasAccess = () => {
-    if (!role) return false;
-    
-    switch(requiredRole) {
-      case 'master':
-        return role === 'master';
-      case 'editor':
-        return ['master', 'editor'].includes(role);
-      case 'viewer':
-        return ['master', 'editor', 'viewer'].includes(role);
-      default:
-        return false;
-    }
-  };
-
-  if (!hasAccess()) {
+  if (!hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h1 className="text-2xl font-bold mb-4">Acesso Negado</h1>

@@ -42,13 +42,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } catch (error) {
             console.error('🔄 AuthContext: Error fetching user role:', error);
             setRole(null);
+          } finally {
+            setLoading(false);
           }
         } else {
           console.log('🔄 AuthContext: No session, clearing user role');
           setRole(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
