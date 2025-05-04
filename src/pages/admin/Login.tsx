@@ -21,13 +21,17 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    console.log('🔐 Login attempt started for:', email);
 
     try {
+      console.log('⏳ Calling signIn function...');
       await signIn(email, password);
+      console.log('✅ Login successful!');
       toast.success('Login realizado com sucesso');
       navigate('/admin');
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('❌ Login error:', err);
       if (err.message === 'Usuário não possui permissão de acesso.') {
         setError('Este usuário não possui permissão para acessar a área administrativa.');
       } else if (err.message === 'Invalid login credentials') {
@@ -36,6 +40,7 @@ const Login = () => {
         setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
       }
     } finally {
+      console.log('🏁 Login attempt completed');
       setLoading(false);
     }
   };
