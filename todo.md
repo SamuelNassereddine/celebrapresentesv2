@@ -23,6 +23,10 @@
   - [x] Etapa 2: Entrega
   - [x] Etapa 3: Personalização
   - [x] Etapa 4: Pagamento
+- [x] Adicionar seção de produtos adicionais no carrinho
+- [x] Remover opção de pagamento via PIX
+- [x] Integrar pedidos com Supabase
+- [x] Implementar auto-preenchimento de endereço por CEP
 
 ## Front-end (Admin):
 - [x] Criar dashboard administrativo
@@ -31,11 +35,12 @@
 - [x] Implementar páginas de pedidos com filtros
 - [x] Criar visualização de calendário para entregas
 - [x] Desenvolver página de configurações da loja
+- [x] Implementar gerenciamento de horários de entrega
 
 ## Integrações:
 - [x] Configurar busca por CEP com ViaCEP
 - [x] Implementar link do WhatsApp
-- [x] Criar lógica de PIX copia e cola
+- [x] ~~Criar lógica de PIX copia e cola~~ (Removido - não será mais utilizado)
 
 ## Testes:
 - [ ] Testar responsividade
@@ -61,3 +66,10 @@
 - [ ] Implementar página de detalhes de pedido
 - [ ] Adicionar estatísticas no dashboard
 - [ ] Implementar exportação de relatórios
+
+## Melhorias recentes:
+- [x] Adicionar seção de produtos adicionais no carrinho
+- [x] Remover opção de pagamento via PIX
+- [x] Integrar pedidos com Supabase
+- [x] Auto-preenchimento de endereço por CEP
+- [x] Conectar horários de entrega ao gerenciamento admin

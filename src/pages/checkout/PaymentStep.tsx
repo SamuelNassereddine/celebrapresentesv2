@@ -9,89 +9,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import QRCodePix from 'qrcode-pix';
+import { supabase } from '@/integrations/supabase/client';
 
 // Store settings - ideally this would come from the database
 const storeSettings = {
-  pixKey: '11987965672',
-  pixKeyType: 'phone',
-  pixReceiverName: 'Samuel Nassereddine Junior',
-  pixCity: 'São Bernardo do Campo',
   whatsappNumber: '5511987965672'
 };
 
 const PaymentStep = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'whatsapp'>('pix');
-  const [pixCode, setPixCode] = useState('');
-  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
-  const [copiado, setCopiado] = useState(false);
   
   useEffect(() => {
     // Generate a random order number
     const randomOrderNum = Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(randomOrderNum.toString());
-    
-    // Generate PIX code
-    if (totalPrice > 0) {
-      generatePixCode(randomOrderNum.toString());
-    }
-  }, [totalPrice]);
-  
-  const generatePixCode = async (txid: string) => {
-    try {
-      setIsGeneratingPix(true);
-      
-      // Format the amount properly for the PIX code
-      const amount = Number(totalPrice.toFixed(2));
-      
-      if (amount <= 0) {
-        throw new Error("O valor do pagamento deve ser maior que zero");
-      }
-      
-      console.log("Generating PIX code with parameters:", {
-        version: '01',
-        key: storeSettings.pixKey,
-        name: storeSettings.pixReceiverName,
-        city: storeSettings.pixCity,
-        value: amount,
-        transactionId: `PEDIDO-${txid}`,
-      });
-      
-      // Gera o código PIX usando a biblioteca qrcode-pix
-      const pix = new QRCodePix({
-        version: '01',
-        key: storeSettings.pixKey,
-        name: storeSettings.pixReceiverName,
-        city: storeSettings.pixCity,
-        value: amount,
-        transactionId: `PEDIDO-${txid}`,
-      });
-      
-      const pixPayload = pix.payload();
-      console.log("PIX Payload:", pixPayload);
-      setPixCode(pixPayload);
-      
-    } catch (error) {
-      console.error('Erro ao gerar código PIX:', error);
-      toast.error('Erro ao gerar código PIX. Tente novamente.');
-    } finally {
-      setIsGeneratingPix(false);
-    }
-  };
-  
-  const handlePaymentMethodChange = (method: 'pix' | 'whatsapp') => {
-    setPaymentMethod(method);
-  };
-  
-  const handleCopyPixCode = async () => {
-    await navigator.clipboard.writeText(pixCode);
-    setCopiado(true);
-    toast.success('Código PIX copiado para a área de transferência!');
-    setTimeout(() => setCopiado(false), 2000);
-  };
+  }, []);
   
   // Get all checkout data
   const getCheckoutData = () => {
@@ -152,36 +86,83 @@ const PaymentStep = () => {
     return encodeURIComponent(message);
   };
   
-  const handleWhatsAppCheckout = () => {
-    const message = formatWhatsAppMessage();
-    const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
-    
-    // Clear the cart and checkout data
-    clearCart();
-    localStorage.removeItem('checkoutIdentification');
-    localStorage.removeItem('checkoutDelivery');
-    localStorage.removeItem('checkoutPersonalization');
-    
-    // Open WhatsApp in a new tab
-    window.open(whatsappUrl, '_blank');
-    
-    // Navigate to confirmation page
-    navigate('/checkout/confirmation');
+  const saveOrderToDatabase = async () => {
+    try {
+      const data = getCheckoutData();
+      
+      // Insert order into Supabase
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_name: data.identification.name,
+          customer_phone: data.identification.phone,
+          customer_email: data.identification.email || null,
+          recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
+          address_street: data.delivery.street,
+          address_number: data.delivery.number,
+          address_complement: data.delivery.complement || null,
+          address_neighborhood: data.delivery.neighborhood,
+          address_city: data.delivery.city,
+          address_state: data.delivery.state,
+          address_zipcode: data.delivery.cep,
+          delivery_date: data.delivery.deliveryDate,
+          delivery_time_slot_id: data.delivery.deliveryTimeSlot,
+          personalization_text: data.personalization.message || null,
+          total_price: data.totalPrice,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (orderError) throw orderError;
+      
+      // Insert order items
+      if (orderData) {
+        const orderItems = data.items.map(item => ({
+          order_id: orderData.id,
+          product_id: item.id,
+          product_title: item.title,
+          unit_price: item.price,
+          quantity: item.quantity
+        }));
+        
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
+        
+        if (itemsError) throw itemsError;
+      }
+      
+      return orderData;
+    } catch (error) {
+      console.error('Error saving order to database:', error);
+      throw error;
+    }
   };
   
-  const handlePixCheckout = () => {
-    toast.success('Pedido confirmado! Aguardando confirmação do pagamento...');
-    
-    // Clear the cart and checkout data after a delay to simulate payment confirmation
-    setTimeout(() => {
+  const handleWhatsAppCheckout = async () => {
+    try {
+      // Save order to database first
+      await saveOrderToDatabase();
+      
+      const message = formatWhatsAppMessage();
+      const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+      
+      // Clear the cart and checkout data
       clearCart();
       localStorage.removeItem('checkoutIdentification');
       localStorage.removeItem('checkoutDelivery');
       localStorage.removeItem('checkoutPersonalization');
       
+      // Open WhatsApp in a new tab
+      window.open(whatsappUrl, '_blank');
+      
       // Navigate to confirmation page
       navigate('/checkout/confirmation');
-    }, 2000);
+    } catch (error) {
+      toast.error('Erro ao finalizar pedido. Tente novamente.');
+      console.error('Error during checkout:', error);
+    }
   };
   
   return (
@@ -211,115 +192,23 @@ const PaymentStep = () => {
             </div>
             
             <div>
-              <h3 className="text-lg font-medium mb-3">Método de pagamento</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button 
-                  type="button"
-                  onClick={() => handlePaymentMethodChange('pix')}
-                  className={`p-4 border rounded-md text-center flex flex-col items-center justify-center ${
-                    paymentMethod === 'pix' 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">💰</div>
-                  <span className="font-medium">PIX</span>
-                  <span className="text-sm text-gray-500">Pagamento instantâneo</span>
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => handlePaymentMethodChange('whatsapp')}
-                  className={`p-4 border rounded-md text-center flex flex-col items-center justify-center ${
-                    paymentMethod === 'whatsapp' 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">📱</div>
-                  <span className="font-medium">WhatsApp</span>
-                  <span className="text-sm text-gray-500">Finalizar pedido pelo WhatsApp</span>
-                </button>
-              </div>
+              <h3 className="text-lg font-medium mb-3">Finalizar via WhatsApp</h3>
+              <Card className="bg-gray-50">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-4">
+                      Ao clicar no botão abaixo, você será redirecionado para o WhatsApp para finalizar seu pedido.
+                    </p>
+                    <Button 
+                      onClick={handleWhatsAppCheckout}
+                      className="w-full md:w-auto"
+                    >
+                      Finalizar pelo WhatsApp
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            
-            {paymentMethod === 'pix' && (
-              <div>
-                <h3 className="text-lg font-medium mb-3">Pagamento via PIX</h3>
-                <p className="text-gray-600 mb-4">
-                  Utilize o código PIX abaixo para realizar o pagamento.
-                </p>
-                
-                {totalPrice <= 0 && (
-                  <Alert className="mb-4">
-                    <AlertDescription>
-                      O valor do pedido deve ser maior que zero para gerar um código PIX.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                
-                <Card className="bg-gray-50">
-                  <CardContent className="p-6">
-                    {isGeneratingPix ? (
-                      <div className="flex justify-center p-6">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                      </div>
-                    ) : totalPrice <= 0 ? (
-                      <div className="text-center p-6 text-gray-600">
-                        O valor do pedido deve ser maior que zero para gerar um código PIX.
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-4">
-                        <div>
-                          <label className="font-medium text-gray-800 mb-2 block">
-                            PIX Copia e Cola:
-                          </label>
-                          <Textarea
-                            readOnly
-                            value={pixCode || 'Código PIX não disponível'}
-                            className="w-full p-2 border rounded text-sm font-mono resize-none bg-white"
-                            rows={4}
-                          />
-                        </div>
-                        <Button 
-                          onClick={handleCopyPixCode}
-                          className="w-full md:w-auto"
-                          disabled={!pixCode}
-                        >
-                          {copiado ? "Código copiado!" : "Copiar código Pix"}
-                        </Button>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Copie o código e cole no app do seu banco para realizar o pagamento via PIX.
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-                
-                <div className="mt-4 text-center">
-                  <Button 
-                    onClick={handlePixCheckout}
-                    className="w-full md:w-auto"
-                    disabled={isGeneratingPix || totalPrice <= 0 || !pixCode}
-                  >
-                    Confirmar Pagamento
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {paymentMethod === 'whatsapp' && (
-              <div className="text-center">
-                <p className="text-gray-600 mb-6">
-                  Ao clicar no botão abaixo, você será redirecionado para o WhatsApp para finalizar seu pedido.
-                </p>
-                <Button 
-                  onClick={handleWhatsAppCheckout}
-                  className="w-full md:w-auto"
-                >
-                  Finalizar pelo WhatsApp
-                </Button>
-              </div>
-            )}
           </div>
           
           <div className="mt-8 flex justify-start">

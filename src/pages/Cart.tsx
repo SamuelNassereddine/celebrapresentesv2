@@ -22,11 +22,11 @@ const Cart = () => {
     const fetchAdditionalProducts = async () => {
       setLoading(true);
       try {
-        // First, find the "itens adicionais" category
+        // First, find the "produtos-adicionais" category
         const { data: categoryData } = await supabase
           .from('categories')
           .select('*')
-          .or('slug.eq.itens-adicionais,name.ilike.%itens adicionais%')
+          .or('slug.eq.produtos-adicionais,name.ilike.%produtos adicionais%')
           .maybeSingle();
         
         if (categoryData) {
@@ -53,6 +53,9 @@ const Cart = () => {
             
             setAdditionalProducts(productsWithImages);
           }
+        } else {
+          // If category doesn't exist, try to create it
+          console.log("Produtos adicionais category doesn't exist");
         }
       } catch (error) {
         console.error('Error fetching additional products:', error);
