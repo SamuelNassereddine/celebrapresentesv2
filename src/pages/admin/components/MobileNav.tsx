@@ -1,153 +1,177 @@
 
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  CalendarDays, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Package,
+  Calendar,
   Settings,
-  Search,
-  Menu,
+  Users,
   X,
-  LogOut
+  ChevronDown,
+  ChevronUp,
+  Tags,
 } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
-const MobileNav = () => {
-  const [open, setOpen] = useState(false);
-  const { role, signOut } = useAuth();
+interface MobileNavProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const MobileNav = ({ isOpen, onClose }: MobileNavProps) => {
   const location = useLocation();
-  
-  // Function to check if link is active
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const { role } = useAuth();
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(
+    location.pathname.startsWith('/admin/products') || location.pathname.startsWith('/admin/categories')
+      ? 'products'
+      : null
+  );
+
+  const toggleExpandMenu = (menu: string) => {
+    setExpandedMenu(expandedMenu === menu ? null : menu);
   };
 
+  const isLinkActive = (path: string) => {
+    if (path === '/admin' && location.pathname === '/admin') {
+      return true;
+    }
+    return path !== '/admin' && location.pathname.startsWith(path);
+  };
+
+  const hasAccess = (requiredRole: string) => {
+    switch (requiredRole) {
+      case 'master':
+        return role === 'master';
+      case 'editor':
+        return ['master', 'editor'].includes(role || '');
+      case 'viewer':
+        return ['master', 'editor', 'viewer'].includes(role || '');
+      default:
+        return false;
+    }
+  };
+
+  const menuItems = [
+    { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+    {
+      id: 'products',
+      icon: <ShoppingBag size={20} />,
+      label: 'Catálogo',
+      role: 'viewer',
+      submenu: [
+        { path: '/admin/categories', icon: <Tags size={18} />, label: 'Categorias', role: 'editor' },
+        { path: '/admin/products', icon: <Package size={18} />, label: 'Produtos', role: 'editor' },
+      ],
+      isExpanded: expandedMenu === 'products',
+    },
+    { path: '/admin/orders', icon: <Package size={20} />, label: 'Pedidos', role: 'viewer' },
+    { path: '/admin/calendar', icon: <Calendar size={20} />, label: 'Calendário', role: 'viewer' },
+    { path: '/admin/settings', icon: <Settings size={20} />, label: 'Configurações', role: 'editor' },
+    { path: '/admin/users', icon: <Users size={20} />, label: 'Usuários', role: 'master' },
+  ];
+
+  if (!isOpen) return null;
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="h-6 w-6" />
-          <span className="sr-only">Toggle menu</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-        <div className="px-2 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center" onClick={() => setOpen(false)}>
-            <h1 className="text-xl font-bold text-primary">Flor & Cia</h1>
-            <span className="ml-2 text-sm text-gray-500">Admin</span>
-          </Link>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        
-        <nav className="flex flex-col gap-2 p-2">
-          <Link 
-            to="/admin" 
-            className={cn(
-              "flex items-center p-2 rounded-md",
-              isActive('/admin') && !isActive('/admin/products') && !isActive('/admin/orders') && !isActive('/admin/users') && !isActive('/admin/settings') && !isActive('/admin/calendar')
-                ? "bg-primary/10 text-primary"
-                : "text-gray-600 hover:bg-gray-100"
-            )}
-            onClick={() => setOpen(false)}
-          >
-            <LayoutDashboard className="w-5 h-5 mr-3" />
-            Dashboard
-          </Link>
-
-          {/* Products - Editors and Masters */}
-          {(['editor', 'master'].includes(role || '')) && (
-            <Link 
-              to="/admin/products" 
-              className={cn(
-                "flex items-center p-2 rounded-md",
-                isActive('/admin/products') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-              )}
-              onClick={() => setOpen(false)}
-            >
-              <FileText className="w-5 h-5 mr-3" />
-              Produtos
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm md:hidden">
+      <div className="fixed inset-y-0 left-0 z-50 h-full w-3/4 max-w-xs bg-background shadow-lg">
+        <div className="flex h-full flex-col overflow-y-auto">
+          <div className="p-4 border-b flex items-center justify-between">
+            <Link to="/admin" className="text-lg font-bold" onClick={onClose}>
+              Flor & Cia Admin
             </Link>
-          )}
-
-          {/* Orders - All roles */}
-          <Link 
-            to="/admin/orders" 
-            className={cn(
-              "flex items-center p-2 rounded-md",
-              isActive('/admin/orders') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-            )}
-            onClick={() => setOpen(false)}
-          >
-            <Search className="w-5 h-5 mr-3" />
-            Pedidos
-          </Link>
-
-          {/* Calendar - All roles */}
-          <Link 
-            to="/admin/calendar" 
-            className={cn(
-              "flex items-center p-2 rounded-md",
-              isActive('/admin/calendar') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-            )}
-            onClick={() => setOpen(false)}
-          >
-            <CalendarDays className="w-5 h-5 mr-3" />
-            Calendário
-          </Link>
-
-          {/* Users - Only Masters */}
-          {role === 'master' && (
-            <Link 
-              to="/admin/users" 
-              className={cn(
-                "flex items-center p-2 rounded-md",
-                isActive('/admin/users') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-              )}
-              onClick={() => setOpen(false)}
-            >
-              <Users className="w-5 h-5 mr-3" />
-              Usuários
-            </Link>
-          )}
-
-          {/* Settings - Editors and Masters */}
-          {(['editor', 'master'].includes(role || '')) && (
-            <Link 
-              to="/admin/settings" 
-              className={cn(
-                "flex items-center p-2 rounded-md",
-                isActive('/admin/settings') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-              )}
-              onClick={() => setOpen(false)}
-            >
-              <Settings className="w-5 h-5 mr-3" />
-              Configurações
-            </Link>
-          )}
-
-          <div className="pt-4 mt-4 border-t border-gray-200">
-            <Button 
-              variant="outline" 
-              className="flex items-center w-full justify-start" 
-              onClick={() => {
-                signOut();
-                setOpen(false);
-              }}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
+            <button className="text-muted-foreground" onClick={onClose}>
+              <X size={20} />
+            </button>
           </div>
-        </nav>
-      </SheetContent>
-    </Sheet>
+          
+          <nav className="flex-1 p-4 space-y-2">
+            {menuItems.map((item, index) => {
+              if ('submenu' in item) {
+                // Skip items that user doesn't have access to
+                if (item.role && !hasAccess(item.role)) return null;
+                
+                // Check if any submenu item is accessible
+                const hasAccessToAnySubmenuItem = item.submenu.some(
+                  (subItem) => !subItem.role || hasAccess(subItem.role)
+                );
+                
+                if (!hasAccessToAnySubmenuItem) return null;
+
+                return (
+                  <div key={index} className="space-y-1">
+                    <button
+                      onClick={() => toggleExpandMenu(item.id)}
+                      className={`
+                        w-full flex items-center justify-between px-4 py-3 text-sm rounded-md
+                        ${isLinkActive('/admin/products') || isLinkActive('/admin/categories')
+                          ? 'bg-accent text-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                      `}
+                    >
+                      <div className="flex items-center">
+                        <span className="mr-3">{item.icon}</span>
+                        {item.label}
+                      </div>
+                      {item.isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </button>
+                    
+                    {item.isExpanded && (
+                      <div className="pl-10 space-y-1">
+                        {item.submenu.map((subItem, subIndex) => {
+                          // Skip submenu items that user doesn't have access to
+                          if (subItem.role && !hasAccess(subItem.role)) return null;
+                          
+                          return (
+                            <Link
+                              key={subIndex}
+                              to={subItem.path}
+                              className={`
+                                flex items-center px-4 py-3 text-sm rounded-md
+                                ${isLinkActive(subItem.path)
+                                  ? 'bg-accent text-accent-foreground font-medium'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                              `}
+                              onClick={onClose}
+                            >
+                              <span className="mr-3">{subItem.icon}</span>
+                              {subItem.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                // Skip items that user doesn't have access to
+                if (item.role && !hasAccess(item.role)) return null;
+                
+                return (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className={`
+                      flex items-center px-4 py-3 text-sm rounded-md
+                      ${isLinkActive(item.path)
+                        ? 'bg-accent text-accent-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                    `}
+                    onClick={onClose}
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              }
+            })}
+          </nav>
+        </div>
+      </div>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+    </div>
   );
 };
 

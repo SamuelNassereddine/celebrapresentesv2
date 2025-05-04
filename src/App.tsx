@@ -1,48 +1,51 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CartProvider } from "@/context/CartContext";
-import { AuthProvider } from "@/context/AuthContext";
+import { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CartProvider } from '@/context/CartContext';
+import { AuthProvider } from '@/context/AuthContext';
+import { Toaster } from '@/components/ui/sonner';
 
-import Home from "./pages/Home";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Cart from "./pages/Cart";
-import IdentificationStep from "./pages/checkout/IdentificationStep";
-import DeliveryStep from "./pages/checkout/DeliveryStep";
-import PersonalizationStep from "./pages/checkout/PersonalizationStep";
-import PaymentStep from "./pages/checkout/PaymentStep";
-import Confirmation from "./pages/checkout/Confirmation";
-import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
+// Import pages
+const Index = lazy(() => import('@/pages/Index'));
+const Products = lazy(() => import('@/pages/Products'));
+const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
+const Cart = lazy(() => import('@/pages/Cart'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
-// Admin routes
-import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminProducts from "./pages/admin/Products";
-import AdminOrders from "./pages/admin/Orders";
-import AdminCalendar from "./pages/admin/Calendar";
-import AdminSettings from "./pages/admin/Settings";
-import AdminUsers from "./pages/admin/Users";
+// Checkout steps
+const IdentificationStep = lazy(() => import('@/pages/checkout/IdentificationStep'));
+const DeliveryStep = lazy(() => import('@/pages/checkout/DeliveryStep'));
+const PersonalizationStep = lazy(() => import('@/pages/checkout/PersonalizationStep'));
+const PaymentStep = lazy(() => import('@/pages/checkout/PaymentStep'));
+const Confirmation = lazy(() => import('@/pages/checkout/Confirmation'));
 
-const queryClient = new QueryClient();
+// Admin pages
+const AdminLogin = lazy(() => import('@/pages/admin/Login'));
+const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
+const AdminProducts = lazy(() => import('@/pages/admin/Products'));
+const AdminProductForm = lazy(() => import('@/pages/admin/Products/ProductForm'));
+const AdminCategories = lazy(() => import('@/pages/admin/Categories'));
+const AdminCategoryForm = lazy(() => import('@/pages/admin/Categories/CategoryForm'));
+const AdminOrders = lazy(() => import('@/pages/admin/Orders'));
+const AdminCalendar = lazy(() => import('@/pages/admin/Calendar'));
+const AdminSettings = lazy(() => import('@/pages/admin/Settings'));
+const AdminUsers = lazy(() => import('@/pages/admin/Users'));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
         <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/category/:slug" element={<Products />} />
               <Route path="/cart" element={<Cart />} />
+              
+              {/* Checkout Routes */}
               <Route path="/checkout/1" element={<IdentificationStep />} />
               <Route path="/checkout/2" element={<DeliveryStep />} />
               <Route path="/checkout/3" element={<PersonalizationStep />} />
@@ -53,18 +56,25 @@ const App = () => (
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/products/new" element={<AdminProductForm />} />
+              <Route path="/admin/products/:id" element={<AdminProductForm />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/categories/new" element={<AdminCategoryForm />} />
+              <Route path="/admin/categories/:id" element={<AdminCategoryForm />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/calendar" element={<AdminCalendar />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               
+              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
+          </Suspense>
+          <Toaster />
         </CartProvider>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      </AuthProvider>
+    </Router>
+  );
+}
 
 export default App;

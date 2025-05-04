@@ -15,17 +15,32 @@ type Product = Database['public']['Tables']['products']['Row'] & {
 
 const Home = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       const categoriesData = await fetchCategories();
+      
+      // Filter out the "itens adicionais" category from display
+      const displayCategories = categoriesData.filter(cat => 
+        cat.slug !== 'itens-adicionais' && cat.name.toLowerCase() !== 'itens adicionais'
+      );
+      
       const productsData = await fetchProducts();
       
-      setCategories(categoriesData);
-      setFeaturedProducts(productsData.slice(0, 4)); // Only show 4 featured products
+      // Group products by category
+      const groupedProducts: Record<string, Product[]> = {};
+      
+      displayCategories.forEach(category => {
+        groupedProducts[category.id] = productsData.filter(
+          product => product.category_id === category.id
+        ).slice(0, 4); // Show max 4 products per category on home
+      });
+      
+      setCategories(displayCategories);
+      setProductsByCategory(groupedProducts);
       setLoading(false);
     };
     
@@ -76,17 +91,24 @@ const Home = () => {
         )}
       </section>
       
-      {/* Featured Products Section */}
-      <section className="container mx-auto px-4 mb-16">
-        <h2 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">
-          Produtos em Destaque
-        </h2>
-        {loading ? (
-          <div className="text-center py-8">Carregando produtos...</div>
-        ) : (
-          <>
+      {/* Products by Category Sections */}
+      {!loading && categories.length > 0 && categories.map(category => (
+        <section key={category.id} className="container mx-auto px-4 mb-16">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-playfair font-semibold">
+              {category.name}
+            </h2>
+            <Link 
+              to={`/category/${category.slug}`}
+              className="text-primary underline hover:text-primary-foreground transition"
+            >
+              Ver todos
+            </Link>
+          </div>
+          
+          {productsByCategory[category.id]?.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {featuredProducts.map((product) => (
+              {productsByCategory[category.id].map((product) => (
                 <ProductCard
                   key={product.id}
                   id={product.id}
@@ -96,17 +118,13 @@ const Home = () => {
                 />
               ))}
             </div>
-            <div className="mt-8 text-center">
-              <Link 
-                to="/products" 
-                className="inline-block bg-primary text-primary-foreground font-medium py-2.5 px-8 rounded-md hover:bg-opacity-90 transition duration-200"
-              >
-                Ver todos os produtos
-              </Link>
+          ) : (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              Nenhum produto disponível nesta categoria
             </div>
-          </>
-        )}
-      </section>
+          )}
+        </section>
+      ))}
       
       {/* Testimonial Section */}
       <section className="bg-gray-50 py-16 px-4 mb-12">

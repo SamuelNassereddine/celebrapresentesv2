@@ -1,109 +1,193 @@
 
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  CalendarDays, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Package,
+  Calendar,
   Settings,
-  Search,
-  LogOut
+  Users,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Tags,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/context/AuthContext';
+import useMobile from '@/hooks/use-mobile';
+import MobileNav from './MobileNav';
 
 const AdminSidebar = () => {
-  const { role, signOut } = useAuth();
   const location = useLocation();
+  const { role } = useAuth();
+  const { isMobile } = useMobile();
   
-  // Function to check if link is active
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(
+    location.pathname.startsWith('/admin/products') || location.pathname.startsWith('/admin/categories')
+      ? 'products'
+      : null
+  );
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+  
+  const toggleExpandMenu = (menu: string) => {
+    setExpandedMenu(expandedMenu === menu ? null : menu);
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden fixed top-3 left-3 z-50"
+          onClick={toggleSidebar}
+        >
+          <Menu />
+        </Button>
+        <MobileNav isOpen={isSidebarOpen} onClose={toggleSidebar} />
+      </>
+    );
+  }
+
+  const isLinkActive = (path: string) => {
+    if (path === '/admin' && location.pathname === '/admin') {
+      return true;
+    }
+    return path !== '/admin' && location.pathname.startsWith(path);
+  };
+
+  const menuItems = [
+    { path: '/admin', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+    {
+      id: 'products',
+      icon: <ShoppingBag size={18} />,
+      label: 'Catálogo',
+      role: 'viewer',
+      submenu: [
+        { path: '/admin/categories', icon: <Tags size={16} />, label: 'Categorias', role: 'editor' },
+        { path: '/admin/products', icon: <Package size={16} />, label: 'Produtos', role: 'editor' },
+      ],
+      isExpanded: expandedMenu === 'products',
+    },
+    { path: '/admin/orders', icon: <Package size={18} />, label: 'Pedidos', role: 'viewer' },
+    { path: '/admin/calendar', icon: <Calendar size={18} />, label: 'Calendário', role: 'viewer' },
+    { path: '/admin/settings', icon: <Settings size={18} />, label: 'Configurações', role: 'editor' },
+    { path: '/admin/users', icon: <Users size={18} />, label: 'Usuários', role: 'master' },
+  ];
+
+  const hasAccess = (requiredRole: string) => {
+    switch (requiredRole) {
+      case 'master':
+        return role === 'master';
+      case 'editor':
+        return ['master', 'editor'].includes(role || '');
+      case 'viewer':
+        return ['master', 'editor', 'viewer'].includes(role || '');
+      default:
+        return false;
+    }
   };
 
   return (
-    <div className="bg-white w-64 border-r border-gray-200 hidden md:block">
+    <div className="hidden md:flex w-64 bg-background border-r flex-col">
       <div className="p-4 border-b">
-        <Link to="/" className="flex items-center">
-          <h1 className="text-xl font-bold text-primary">Flor & Cia</h1>
-          <span className="ml-2 text-sm text-gray-500">Admin</span>
-        </Link>
-      </div>
-      
-      <nav className="p-4 space-y-1">
-        <Link to="/admin" className={cn(
-          "flex items-center p-2 rounded-md w-full",
-          isActive('/admin') && !isActive('/admin/products') && !isActive('/admin/orders') && !isActive('/admin/users') && !isActive('/admin/settings') && !isActive('/admin/calendar')
-            ? "bg-primary/10 text-primary"
-            : "text-gray-600 hover:bg-gray-100"
-        )}>
-          <LayoutDashboard className="w-5 h-5 mr-3" />
-          Dashboard
-        </Link>
-
-        {/* Products - Editors and Masters */}
-        {(['editor', 'master'].includes(role || '')) && (
-          <Link to="/admin/products" className={cn(
-            "flex items-center p-2 rounded-md w-full",
-            isActive('/admin/products') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-          )}>
-            <FileText className="w-5 h-5 mr-3" />
-            Produtos
+        <div className="w-full p-2 flex items-center justify-center">
+          <Link to="/admin" className="text-lg font-bold">
+            Flor & Cia Admin
           </Link>
-        )}
-
-        {/* Orders - All roles */}
-        <Link to="/admin/orders" className={cn(
-          "flex items-center p-2 rounded-md w-full",
-          isActive('/admin/orders') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-        )}>
-          <Search className="w-5 h-5 mr-3" />
-          Pedidos
-        </Link>
-
-        {/* Calendar - All roles */}
-        <Link to="/admin/calendar" className={cn(
-          "flex items-center p-2 rounded-md w-full",
-          isActive('/admin/calendar') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-        )}>
-          <CalendarDays className="w-5 h-5 mr-3" />
-          Calendário
-        </Link>
-
-        {/* Users - Only Masters */}
-        {role === 'master' && (
-          <Link to="/admin/users" className={cn(
-            "flex items-center p-2 rounded-md w-full",
-            isActive('/admin/users') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-          )}>
-            <Users className="w-5 h-5 mr-3" />
-            Usuários
-          </Link>
-        )}
-
-        {/* Settings - Editors and Masters */}
-        {(['editor', 'master'].includes(role || '')) && (
-          <Link to="/admin/settings" className={cn(
-            "flex items-center p-2 rounded-md w-full",
-            isActive('/admin/settings') ? "bg-primary/10 text-primary" : "text-gray-600 hover:bg-gray-100"
-          )}>
-            <Settings className="w-5 h-5 mr-3" />
-            Configurações
-          </Link>
-        )}
-
-        <div className="pt-4 mt-4 border-t border-gray-200">
-          <Button 
-            variant="outline" 
-            className="flex items-center w-full justify-start" 
-            onClick={() => signOut()}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
         </div>
-      </nav>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-3">
+          <nav className="space-y-1">
+            {menuItems.map((item, index) => {
+              if ('submenu' in item) {
+                // Skip items that user doesn't have access to
+                if (item.role && !hasAccess(item.role)) return null;
+                
+                // Check if any submenu item is accessible
+                const hasAccessToAnySubmenuItem = item.submenu.some(
+                  (subItem) => !subItem.role || hasAccess(subItem.role)
+                );
+                
+                if (!hasAccessToAnySubmenuItem) return null;
+
+                return (
+                  <div key={index} className="space-y-1">
+                    <button
+                      onClick={() => toggleExpandMenu(item.id)}
+                      className={`
+                        w-full flex items-center justify-between px-3 py-2 text-sm rounded-md
+                        ${isLinkActive('/admin/products') || isLinkActive('/admin/categories')
+                          ? 'bg-accent text-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                      `}
+                    >
+                      <div className="flex items-center">
+                        <span className="mr-3">{item.icon}</span>
+                        {item.label}
+                      </div>
+                      {item.isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                    
+                    {item.isExpanded && (
+                      <div className="pl-9 space-y-1">
+                        {item.submenu.map((subItem, subIndex) => {
+                          // Skip submenu items that user doesn't have access to
+                          if (subItem.role && !hasAccess(subItem.role)) return null;
+                          
+                          return (
+                            <Link
+                              key={subIndex}
+                              to={subItem.path}
+                              className={`
+                                flex items-center px-3 py-2 text-sm rounded-md
+                                ${isLinkActive(subItem.path)
+                                  ? 'bg-accent text-accent-foreground font-medium'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                              `}
+                            >
+                              <span className="mr-3">{subItem.icon}</span>
+                              {subItem.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                // Skip items that user doesn't have access to
+                if (item.role && !hasAccess(item.role)) return null;
+                
+                return (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className={`
+                      flex items-center px-3 py-2 text-sm rounded-md
+                      ${isLinkActive(item.path)
+                        ? 'bg-accent text-accent-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
+                    `}
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              }
+            })}
+          </nav>
+        </div>
+      </ScrollArea>
     </div>
   );
 };
