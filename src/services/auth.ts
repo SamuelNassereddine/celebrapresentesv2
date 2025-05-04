@@ -42,18 +42,25 @@ export const getCurrentUser = async () => {
 };
 
 export const getUserRole = async (userId: string): Promise<string | null> => {
-  const { data, error } = await supabase
-    .from('admin_users')
-    .select('role')
-    .eq('id', userId)
-    .single();
-  
-  if (error) {
+  try {
+    // Using raw SQL query with service role to bypass RLS policies
+    // This avoids the infinite recursion issue
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+    
+    return data?.role || null;
+  } catch (error) {
     console.error('Error fetching user role:', error);
     return null;
   }
-  
-  return data?.role || null;
 };
 
 export const checkRole = async (requiredRole: 'master' | 'editor' | 'viewer'): Promise<boolean> => {

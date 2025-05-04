@@ -28,8 +28,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          const userRole = await getUserRole(session.user.id);
-          setRole(userRole);
+          try {
+            const userRole = await getUserRole(session.user.id);
+            setRole(userRole);
+          } catch (error) {
+            console.error('Error fetching user role:', error);
+            setRole(null);
+          }
         } else {
           setRole(null);
         }
@@ -43,8 +48,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const userRole = await getUserRole(session.user.id);
-        setRole(userRole);
+        try {
+          const userRole = await getUserRole(session.user.id);
+          setRole(userRole);
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          setRole(null);
+        }
       }
       
       setLoading(false);
@@ -58,30 +68,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     
-    const { error, data } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
+    try {
+      const { error, data } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        setLoading(false);
+        throw error;
+      }
+      
+      // Check if user is an admin
+      if (data.user) {
+        try {
+          const userRole = await getUserRole(data.user.id);
+          
+          if (!userRole) {
+            // User exists but is not in admin_users table
+            await supabase.auth.signOut();
+            setLoading(false);
+            throw new Error('Usuário não possui permissão de acesso.');
+          }
+          
+          setRole(userRole);
+          toast.success('Login realizado com sucesso');
+        } catch (error) {
+          await supabase.auth.signOut();
+          setLoading(false);
+          throw new Error('Usuário não possui permissão de acesso.');
+        }
+      }
+      
+      setLoading(false);
+    } catch (error) {
       setLoading(false);
       throw error;
     }
-    
-    // Check if user is an admin
-    if (data.user) {
-      const userRole = await getUserRole(data.user.id);
-      if (!userRole) {
-        // User exists but is not in admin_users table
-        await supabase.auth.signOut();
-        setLoading(false);
-        throw new Error('Usuário não possui permissão de acesso.');
-      }
-      setRole(userRole);
-    }
-    
-    setLoading(false);
-    toast.success('Login realizado com sucesso');
   };
 
   const signOut = async () => {
