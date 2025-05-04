@@ -23,6 +23,7 @@ const Login = () => {
 
     try {
       await signIn(email, password);
+      // If we get here without error, authentication was successful
       toast.success('Login realizado com sucesso');
       navigate('/admin');
     } catch (err: any) {
