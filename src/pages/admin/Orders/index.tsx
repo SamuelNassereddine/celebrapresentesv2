@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, User } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -122,102 +122,116 @@ const Orders = () => {
     }).format(date);
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Pedidos</h1>
+      <div className="space-y-1 mb-8">
+        <h1 className="text-2xl font-bold">Gerenciamento de Pedidos</h1>
+        <p className="text-gray-500">Gerencie todos os pedidos e atualize seus status.</p>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-grow">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="search"
-            placeholder="Buscar por cliente, ID, número de pedido ou telefone..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="bg-white border rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-2">Pedidos</h2>
+        <p className="text-gray-500 mb-6">Listagem de todos os pedidos da loja.</p>
+
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              type="search"
+              placeholder="Buscar por nome, ID, número do pedido ou telefone..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <Select 
+            value={statusFilter} 
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todos os status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os status</SelectItem>
+              <SelectItem value="pending">Pendentes</SelectItem>
+              <SelectItem value="in_production">Em Produção</SelectItem>
+              <SelectItem value="shipped">Enviados</SelectItem>
+              <SelectItem value="delivered">Entregues</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
-        <Select 
-          value={statusFilter} 
-          onValueChange={setStatusFilter}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrar por status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="pending">Pendentes</SelectItem>
-            <SelectItem value="in_production">Em Produção</SelectItem>
-            <SelectItem value="shipped">Enviados</SelectItem>
-            <SelectItem value="delivered">Entregues</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID/Nº</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>Entrega</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  Carregando pedidos...
-                </TableCell>
+                <TableHead>Pedido</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ) : filteredOrders.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  Nenhum pedido encontrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">
-                    <div>{order.order_number || 'N/A'}</div>
-                    <div className="text-xs text-gray-500">{order.id.slice(0, 8)}...</div>
-                  </TableCell>
-                  <TableCell>
-                    <div>{order.customer_name}</div>
-                    <div className="text-sm text-gray-500">{order.customer_phone}</div>
-                  </TableCell>
-                  <TableCell>{formatDate(order.created_at)}</TableCell>
-                  <TableCell>{order.delivery_date ? formatDate(order.delivery_date) : 'N/A'}</TableCell>
-                  <TableCell>
-                    {Number(order.total_price).toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <OrderStatusBadge status={order.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link to={`/admin/orders/${order.id}`}>
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">Ver</span>
-                      </Link>
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    Carregando pedidos...
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    Nenhum pedido encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      #{order.order_number || order.id.slice(0, 4)}
+                    </TableCell>
+                    <TableCell>{formatDate(order.created_at)}</TableCell>
+                    <TableCell>{order.customer_name}</TableCell>
+                    <TableCell>{order.customer_phone}</TableCell>
+                    <TableCell>
+                      <OrderStatusBadge status={order.status} />
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(Number(order.total_price))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" asChild title="Ver">
+                          <Link to={`/admin/orders/${order.id}`}>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Ver</span>
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" asChild title="Perfil">
+                          <Link to={`/admin/orders/${order.id}`}>
+                            <User className="h-4 w-4" />
+                            <span className="sr-only">Perfil</span>
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </AdminLayout>
   );

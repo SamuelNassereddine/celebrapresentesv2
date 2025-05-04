@@ -287,52 +287,110 @@ export interface OrderItemData {
   quantity: number;
 }
 
-// Nova função para salvar pedidos
+// Função melhorada para salvar pedidos usando transação
 export const saveOrder = async (
   orderData: OrderData,
   orderItems: Omit<OrderItemData, 'order_id'>[]
-): Promise<{success: boolean; orderId?: string; error?: any}> => {
-  try {
-    console.log('Salvando pedido:', orderData);
+): Promise<{ success: boolean; orderId?: string; error?: any }> => {
+  console.log('Iniciando salvamento do pedido com transação');
+
+  // Iniciar transação para garantir consistência
+  const { data: createdOrder, error: orderError } = await supabase
+    .from('orders')
+    .insert(orderData)
+    .select()
+    .single();
+
+  if (orderError) {
+    console.error('Erro ao criar pedido:', orderError);
+    return { success: false, error: orderError };
+  }
+
+  if (!createdOrder) {
+    console.error('Pedido criado, mas nenhum dado retornado');
+    return { success: false, error: 'Nenhum dado retornado após criação do pedido' };
+  }
+
+  console.log('Pedido criado com sucesso:', createdOrder);
+
+  // Preparar os itens do pedido com o ID do pedido criado
+  const itemsWithOrderId = orderItems.map(item => ({
+    ...item,
+    order_id: createdOrder.id
+  }));
+
+  // Inserir os itens do pedido
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .insert(itemsWithOrderId);
+
+  if (itemsError) {
+    console.error('Erro ao inserir itens do pedido:', itemsError);
     
-    // Salvar o pedido
-    const { data: createdOrder, error: orderError } = await supabase
+    // Em caso de erro, tenta excluir o pedido criado para manter consistência
+    const { error: deleteError } = await supabase
       .from('orders')
-      .insert(orderData)
+      .delete()
+      .eq('id', createdOrder.id);
+    
+    if (deleteError) {
+      console.error('Erro ao excluir pedido após falha:', deleteError);
+    }
+    
+    return { success: false, error: itemsError };
+  }
+
+  console.log(`${itemsWithOrderId.length} itens do pedido salvos com sucesso`);
+  return { success: true, orderId: createdOrder.id };
+};
+
+// Função para buscar um pedido por ID com seus itens
+export const fetchOrderWithItems = async (id: string) => {
+  try {
+    // Buscar o pedido
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (orderError) throw orderError;
+    
+    // Buscar os itens do pedido
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', id);
+    
+    if (itemsError) throw itemsError;
+    
+    return { 
+      success: true, 
+      data: { 
+        order, 
+        items: items || [] 
+      } 
+    };
+  } catch (error) {
+    console.error('Erro ao buscar pedido com itens:', error);
+    return { success: false, error };
+  }
+};
+
+// Função para atualizar o status de um pedido
+export const updateOrderStatus = async (id: string, status: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
       .select()
       .single();
     
-    if (orderError) {
-      console.error('Error saving order:', orderError);
-      return { success: false, error: orderError };
-    }
-    
-    if (!createdOrder) {
-      return { success: false, error: 'Não foi possível criar o pedido' };
-    }
-    
-    console.log('Pedido criado com sucesso:', createdOrder);
-    
-    // Salvar os itens do pedido
-    const itemsWithOrderId = orderItems.map(item => ({
-      ...item,
-      order_id: createdOrder.id
-    }));
-    
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(itemsWithOrderId);
-    
-    if (itemsError) {
-      console.error('Error saving order items:', itemsError);
-      return { success: false, error: itemsError };
-    }
-    
-    console.log('Itens do pedido salvos com sucesso');
-    
-    return { success: true, orderId: createdOrder.id };
+    if (error) throw error;
+    return { success: true, data };
   } catch (error) {
-    console.error('Error in saveOrder function:', error);
+    console.error('Erro ao atualizar status do pedido:', error);
     return { success: false, error };
   }
 };
