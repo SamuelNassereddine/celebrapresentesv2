@@ -4,38 +4,70 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
 import { useCart } from '@/context/CartContext';
+import { QRCodePix } from 'qrcode-pix';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
-// Mock store settings
+// Store settings - ideally this would come from the database
 const storeSettings = {
-  pixEnabled: true,
-  pixKey: 'store@example.com',
-  whatsappNumber: '5500000000000'
-};
-
-// In a production app, this would generate a real PIX code with the store's key and the order amount
-const generatePixCode = (pixKey: string, amount: number): string => {
-  // This is a simplified mock, in a real app you'd implement the actual PIX code generation
-  return `00020101021126580014br.gov.bcb.pix0114${pixKey}520400005303986540${amount}5802BR5913Flor e Cia6008Sao Paulo62070503***63041234`;
+  pixKey: '11987965672',
+  pixKeyType: 'phone',
+  pixReceiverName: 'Samuel Nassereddine Junior',
+  pixCity: 'São Bernardo do Campo',
+  whatsappNumber: '5511987965672'
 };
 
 const PaymentStep = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'whatsapp'>('whatsapp');
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'whatsapp'>('pix');
   const [pixCode, setPixCode] = useState('');
+  const [pixQRCode, setPixQRCode] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState('');
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   
   useEffect(() => {
     // Generate a random order number
     const randomOrderNum = Math.floor(100000 + Math.random() * 900000);
     setOrderNumber(randomOrderNum.toString());
     
-    // Generate PIX code
-    if (storeSettings.pixEnabled) {
-      const code = generatePixCode(storeSettings.pixKey, totalPrice);
-      setPixCode(code);
-    }
+    // Generate PIX code and QR code
+    generatePixCode(randomOrderNum.toString());
   }, [totalPrice]);
+  
+  const generatePixCode = async (txid: string) => {
+    try {
+      setIsGeneratingPix(true);
+      
+      // Format the amount properly - ensure it has 2 decimal places
+      const formattedAmount = totalPrice.toFixed(2);
+      
+      // Create the QRCodePix instance
+      const qrCodePix = QRCodePix({
+        version: '01',
+        key: storeSettings.pixKey,
+        name: storeSettings.pixReceiverName,
+        city: storeSettings.pixCity,
+        value: formattedAmount,
+        txid: txid,
+        message: `Pedido #${txid}`
+      });
+      
+      // Get the BR Code (PIX code for copying)
+      const brCode = qrCodePix.getBRCode();
+      setPixCode(brCode);
+      
+      // Get the QR code as a base64 string
+      const qrCodeBase64 = await qrCodePix.getQRCode();
+      setPixQRCode(qrCodeBase64);
+    } catch (error) {
+      console.error('Erro ao gerar código PIX:', error);
+      toast.error('Erro ao gerar código PIX. Tente novamente.');
+    } finally {
+      setIsGeneratingPix(false);
+    }
+  };
   
   const handlePaymentMethodChange = (method: 'pix' | 'whatsapp') => {
     setPaymentMethod(method);
@@ -43,7 +75,7 @@ const PaymentStep = () => {
   
   const handleCopyPixCode = () => {
     navigator.clipboard.writeText(pixCode);
-    alert('Código PIX copiado para a área de transferência!');
+    toast.success('Código PIX copiado para a área de transferência!');
   };
   
   // Get all checkout data
@@ -127,6 +159,8 @@ const PaymentStep = () => {
   const handlePixCheckout = () => {
     // In a production app, you'd save the order to the database here
     
+    toast.success('Pedido confirmado! Aguardando confirmação do pagamento...');
+    
     // Clear the cart and checkout data after a delay to simulate payment confirmation
     setTimeout(() => {
       clearCart();
@@ -136,7 +170,7 @@ const PaymentStep = () => {
       
       // Navigate to confirmation page
       navigate('/checkout/confirmation');
-    }, 5000);
+    }, 2000);
   };
   
   return (
@@ -168,21 +202,19 @@ const PaymentStep = () => {
             <div>
               <h3 className="text-lg font-medium mb-3">Método de pagamento</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {storeSettings.pixEnabled && (
-                  <button 
-                    type="button"
-                    onClick={() => handlePaymentMethodChange('pix')}
-                    className={`p-4 border rounded-md text-center flex flex-col items-center justify-center ${
-                      paymentMethod === 'pix' 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-2xl mb-2">💰</div>
-                    <span className="font-medium">PIX</span>
-                    <span className="text-sm text-gray-500">Pagamento instantâneo</span>
-                  </button>
-                )}
+                <button 
+                  type="button"
+                  onClick={() => handlePaymentMethodChange('pix')}
+                  className={`p-4 border rounded-md text-center flex flex-col items-center justify-center ${
+                    paymentMethod === 'pix' 
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">💰</div>
+                  <span className="font-medium">PIX</span>
+                  <span className="text-sm text-gray-500">Pagamento instantâneo</span>
+                </button>
                 <button 
                   type="button"
                   onClick={() => handlePaymentMethodChange('whatsapp')}
@@ -201,30 +233,65 @@ const PaymentStep = () => {
             
             {paymentMethod === 'pix' && (
               <div>
-                <h3 className="text-lg font-medium mb-3">PIX Copia e Cola</h3>
+                <h3 className="text-lg font-medium mb-3">Pagamento via PIX</h3>
                 <p className="text-gray-600 mb-4">
-                  Copie o código abaixo e utilize no aplicativo do seu banco para realizar o pagamento via PIX.
+                  Escaneie o QR Code abaixo com o app do seu banco ou copie o código PIX para realizar o pagamento.
                 </p>
-                <div className="bg-gray-50 p-3 rounded-md mb-4">
-                  <div className="flex">
-                    <div className="flex-grow overflow-auto whitespace-nowrap font-mono text-sm p-2">
-                      {pixCode}
-                    </div>
-                    <button 
-                      onClick={handleCopyPixCode}
-                      className="ml-2 bg-gray-200 px-3 py-2 rounded hover:bg-gray-300 whitespace-nowrap"
-                    >
-                      Copiar
-                    </button>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <button 
+                
+                <Card className="bg-gray-50">
+                  <CardContent className="p-6">
+                    {isGeneratingPix ? (
+                      <div className="flex justify-center p-6">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                        {/* QR Code */}
+                        {pixQRCode && (
+                          <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                            <div className="bg-white p-3 rounded-md shadow-sm">
+                              <img 
+                                src={pixQRCode} 
+                                alt="QR Code PIX" 
+                                className="w-40 h-40"
+                              />
+                            </div>
+                            <p className="text-sm text-gray-500">Escaneie com o app do seu banco</p>
+                          </div>
+                        )}
+                        
+                        {/* PIX Copia e Cola */}
+                        <div className="flex-grow w-full">
+                          <h4 className="font-medium mb-2">PIX Copia e Cola</h4>
+                          <div className="bg-white p-3 rounded-md mb-4 border flex">
+                            <div className="flex-grow overflow-auto whitespace-nowrap font-mono text-sm p-2 text-gray-700">
+                              {pixCode}
+                            </div>
+                            <Button 
+                              onClick={handleCopyPixCode}
+                              variant="outline"
+                              size="sm"
+                              className="flex-shrink-0 ml-2"
+                            >
+                              Copiar
+                            </Button>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            Copie o código e cole no app do seu banco para realizar o pagamento via PIX.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <div className="mt-4 text-center">
+                  <Button 
                     onClick={handlePixCheckout}
-                    className="btn-primary"
+                    className="w-full md:w-auto"
                   >
                     Confirmar Pagamento
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -234,24 +301,23 @@ const PaymentStep = () => {
                 <p className="text-gray-600 mb-6">
                   Ao clicar no botão abaixo, você será redirecionado para o WhatsApp para finalizar seu pedido.
                 </p>
-                <button 
+                <Button 
                   onClick={handleWhatsAppCheckout}
-                  className="btn-primary"
+                  className="w-full md:w-auto"
                 >
                   Finalizar pelo WhatsApp
-                </button>
+                </Button>
               </div>
             )}
           </div>
           
           <div className="mt-8 flex justify-start">
-            <button 
-              type="button" 
+            <Button 
+              variant="outline"
               onClick={() => navigate('/checkout/3')}
-              className="btn-secondary"
             >
               Voltar
-            </button>
+            </Button>
           </div>
         </div>
       </div>
