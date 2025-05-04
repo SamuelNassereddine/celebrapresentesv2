@@ -49,6 +49,16 @@ const PaymentStep = () => {
         throw new Error("O valor do pagamento deve ser maior que zero");
       }
       
+      console.log("Generating PIX code with parameters:", {
+        version: '01',
+        key: storeSettings.pixKey,
+        name: storeSettings.pixReceiverName,
+        city: storeSettings.pixCity,
+        value: amount,
+        transactionId: txid,
+        message: `Pedido #${txid}`
+      });
+      
       // Create the QrCodePix instance based on the documentation
       const qrCodePix = QrCodePix({
         version: '01',
@@ -62,10 +72,12 @@ const PaymentStep = () => {
       
       // Get the payload (PIX code for copying)
       const brCode = qrCodePix.payload();
+      console.log("PIX Payload:", brCode);
       setPixCode(brCode);
       
       // Get the QR code as a base64 string
       const qrCodeBase64 = await qrCodePix.base64();
+      console.log("QR Code generated successfully");
       setPixQRCode(qrCodeBase64);
     } catch (error) {
       console.error('Erro ao gerar código PIX:', error);
@@ -264,6 +276,10 @@ const PaymentStep = () => {
                                 src={pixQRCode} 
                                 alt="QR Code PIX" 
                                 className="w-40 h-40"
+                                onError={(e) => {
+                                  console.error("Failed to load QR Code image");
+                                  e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Crect width='160' height='160' fill='%23f5f5f5'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' text-anchor='middle' dominant-baseline='middle'%3EErro ao carregar QR Code%3C/text%3E%3C/svg%3E";
+                                }}
                               />
                             </div>
                             <p className="text-sm text-gray-500">Escaneie com o app do seu banco</p>
@@ -275,13 +291,14 @@ const PaymentStep = () => {
                           <h4 className="font-medium mb-2">PIX Copia e Cola</h4>
                           <div className="bg-white p-3 rounded-md mb-4 border flex">
                             <div className="flex-grow overflow-auto whitespace-nowrap font-mono text-sm p-2 text-gray-700">
-                              {pixCode}
+                              {pixCode || 'Código PIX não disponível'}
                             </div>
                             <Button 
                               onClick={handleCopyPixCode}
                               variant="outline"
                               size="sm"
                               className="flex-shrink-0 ml-2"
+                              disabled={!pixCode}
                             >
                               Copiar
                             </Button>
@@ -299,6 +316,7 @@ const PaymentStep = () => {
                   <Button 
                     onClick={handlePixCheckout}
                     className="w-full md:w-auto"
+                    disabled={isGeneratingPix || totalPrice <= 0 || !pixCode}
                   >
                     Confirmar Pagamento
                   </Button>
