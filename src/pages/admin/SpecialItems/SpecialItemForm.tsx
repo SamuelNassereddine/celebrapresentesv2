@@ -94,14 +94,25 @@ const SpecialItemForm = () => {
     
     try {
       if (isEditing && id) {
-        const updated = await updateSpecialItem(id, values);
+        // Here, explicitly using the non-optional values structure for updateSpecialItem
+        const updated = await updateSpecialItem(id, {
+          title: values.title,
+          description: values.description,
+          price: values.price,
+          image_url: values.image_url
+        });
         if (updated) {
           toast.success('Item especial atualizado com sucesso');
         } else {
           throw new Error('Erro ao atualizar item especial');
         }
       } else {
-        const created = await createSpecialItem(values);
+        const created = await createSpecialItem({
+          title: values.title,
+          description: values.description,
+          price: values.price,
+          image_url: values.image_url
+        });
         if (created) {
           toast.success('Item especial criado com sucesso');
           form.reset();

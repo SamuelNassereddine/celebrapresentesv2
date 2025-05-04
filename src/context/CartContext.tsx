@@ -32,15 +32,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Load cart from localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('flowerShopCart');
-    if (savedCart) {
-      setItems(JSON.parse(savedCart));
+    try {
+      const savedCart = localStorage.getItem('flowerShopCart');
+      if (savedCart) {
+        setItems(JSON.parse(savedCart));
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      // Reset to empty cart if there's an error
+      localStorage.removeItem('flowerShopCart');
     }
   }, []);
 
   // Save cart to localStorage
   useEffect(() => {
-    localStorage.setItem('flowerShopCart', JSON.stringify(items));
+    try {
+      localStorage.setItem('flowerShopCart', JSON.stringify(items));
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
   }, [items]);
 
   const addItem = (item: CartItem) => {
@@ -79,6 +89,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
     setItems([]);
+    localStorage.removeItem('flowerShopCart');
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

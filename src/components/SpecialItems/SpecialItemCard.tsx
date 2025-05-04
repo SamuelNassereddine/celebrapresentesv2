@@ -4,6 +4,7 @@ import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/integrations/supabase/types';
 import { Plus } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
@@ -25,7 +26,7 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
   };
   
   return (
-    <div className="group bg-white rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md">
+    <Card className="group overflow-hidden transition-all hover:shadow-md">
       <div className="aspect-square relative overflow-hidden">
         <img 
           src={item.image_url || '/placeholder.svg'} 
@@ -55,7 +56,7 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
