@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -202,7 +203,12 @@ export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
   return data || [];
 };
 
-export const createSpecialItem = async (item: Omit<SpecialItem, 'id' | 'created_at' | 'updated_at'>): Promise<SpecialItem | null> => {
+export const createSpecialItem = async (item: {
+  title: string;
+  price: number;
+  image_url: string;
+  description?: string;
+}): Promise<SpecialItem | null> => {
   const { data, error } = await supabase
     .from('special_items')
     .insert(item)
@@ -217,7 +223,12 @@ export const createSpecialItem = async (item: Omit<SpecialItem, 'id' | 'created_
   return data;
 };
 
-export const updateSpecialItem = async (id: string, updates: Partial<Omit<SpecialItem, 'id' | 'created_at' | 'updated_at'>>): Promise<SpecialItem | null> => {
+export const updateSpecialItem = async (id: string, updates: {
+  title?: string;
+  price?: number;
+  image_url?: string;
+  description?: string;
+}): Promise<SpecialItem | null> => {
   const { data, error } = await supabase
     .from('special_items')
     .update(updates)

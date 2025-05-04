@@ -37,7 +37,7 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
       <div className="p-3">
         <h3 className="font-medium line-clamp-1">{item.title}</h3>
         <div className="mt-1 flex justify-between items-center">
-          <span className="font-semibold text-primary-foreground">
+          <span className="font-semibold">
             {new Intl.NumberFormat('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
