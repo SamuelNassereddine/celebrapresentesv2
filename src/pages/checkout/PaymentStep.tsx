@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -7,8 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { qrcode } from 'qrcode-pix';
 import { Textarea } from '@/components/ui/textarea';
+import QRCode from 'qrcode-pix';
 
 // Store settings - ideally this would come from the database
 const storeSettings = {
@@ -60,7 +61,7 @@ const PaymentStep = () => {
       });
       
       // Gera o código PIX usando a biblioteca qrcode-pix
-      const pix = qrcode({
+      const pix = QRCode({
         version: '01',
         key: storeSettings.pixKey,
         name: storeSettings.pixReceiverName,
