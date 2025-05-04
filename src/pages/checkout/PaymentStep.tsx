@@ -91,27 +91,31 @@ const PaymentStep = () => {
     try {
       const data = getCheckoutData();
       
-      // Insert order into Supabase
-      const { data: orderData, error: orderError } = await supabase
+      // Como estamos usando RLS para permitir inserções anônimas,
+      // vamos garantir que o objeto de dados esteja correto e completo
+      const orderData = {
+        customer_name: data.identification.name,
+        customer_phone: data.identification.phone,
+        customer_email: data.identification.email || null,
+        recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
+        address_street: data.delivery.street,
+        address_number: data.delivery.number,
+        address_complement: data.delivery.complement || null,
+        address_neighborhood: data.delivery.neighborhood,
+        address_city: data.delivery.city,
+        address_state: data.delivery.state,
+        address_zipcode: data.delivery.cep,
+        delivery_date: data.delivery.deliveryDate,
+        delivery_time_slot_id: data.delivery.deliveryTimeSlot,
+        personalization_text: data.personalization.message || null,
+        total_price: data.totalPrice,
+        status: 'pending'
+      };
+      
+      // Inserir o pedido
+      const { data: createdOrder, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          customer_name: data.identification.name,
-          customer_phone: data.identification.phone,
-          customer_email: data.identification.email || null,
-          recipient_name: !data.delivery.recipientSelf ? data.delivery.recipientName : data.identification.name,
-          address_street: data.delivery.street,
-          address_number: data.delivery.number,
-          address_complement: data.delivery.complement || null,
-          address_neighborhood: data.delivery.neighborhood,
-          address_city: data.delivery.city,
-          address_state: data.delivery.state,
-          address_zipcode: data.delivery.cep,
-          delivery_date: data.delivery.deliveryDate,
-          delivery_time_slot_id: data.delivery.deliveryTimeSlot,
-          personalization_text: data.personalization.message || null,
-          total_price: data.totalPrice,
-          status: 'pending'
-        })
+        .insert(orderData)
         .select()
         .single();
       
@@ -120,27 +124,29 @@ const PaymentStep = () => {
         throw orderError;
       }
       
-      // Insert order items
-      if (orderData) {
-        const orderItems = data.items.map(item => ({
-          order_id: orderData.id,
-          product_id: item.id,
-          product_title: item.title,
-          unit_price: item.price,
-          quantity: item.quantity
-        }));
-        
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems);
-        
-        if (itemsError) {
-          console.error('Error saving order items:', itemsError);
-          throw itemsError;
-        }
+      if (!createdOrder) {
+        throw new Error('Não foi possível criar o pedido');
       }
       
-      return orderData;
+      // Inserir os itens do pedido
+      const orderItems = data.items.map(item => ({
+        order_id: createdOrder.id,
+        product_id: item.id,
+        product_title: item.title,
+        unit_price: item.price,
+        quantity: item.quantity
+      }));
+      
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+      
+      if (itemsError) {
+        console.error('Error saving order items:', itemsError);
+        throw itemsError;
+      }
+      
+      return createdOrder;
     } catch (error) {
       console.error('Error saving order to database:', error);
       throw error;
@@ -153,10 +159,21 @@ const PaymentStep = () => {
     try {
       setIsSubmitting(true);
       
-      // Save order to database first
-      await saveOrderToDatabase();
-      
+      // Preparar a mensagem antes de salvar para que se houver erro no banco,
+      // pelo menos o cliente possa enviar a mensagem via WhatsApp
       const message = formatWhatsAppMessage();
+      
+      try {
+        // Tenta salvar no banco
+        await saveOrderToDatabase();
+        toast.success('Pedido registrado com sucesso!');
+      } catch (dbError) {
+        // Se falhar em salvar no banco, apenas mostra um aviso mas continua para WhatsApp
+        console.error('Não foi possível salvar o pedido no banco de dados:', dbError);
+        toast.error('Não foi possível salvar o pedido, mas você pode continuar via WhatsApp');
+      }
+      
+      // Independente do resultado do banco, permite continuar para o WhatsApp
       const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
       
       // Clear the cart and checkout data
