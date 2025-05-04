@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '../AdminLayout';
@@ -10,11 +10,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Trash2, Upload, Image } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Upload, Image, FileImage } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { uploadProductImage, deleteProductImageFromStorage } from '@/services/api';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 type ProductImage = Database['public']['Tables']['product_images']['Row'];
+
+interface ImagePreview {
+  file: File;
+  previewUrl: string;
+}
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -24,6 +30,7 @@ const ProductForm = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // Product fields
   const [title, setTitle] = useState('');
@@ -32,10 +39,10 @@ const ProductForm = () => {
   const [categoryId, setCategoryId] = useState('');
   const [images, setImages] = useState<ProductImage[]>([]);
   
-  // New image URLs
-  const [imageUrl, setImageUrl] = useState('');
-  const [showImageForm, setShowImageForm] = useState(false);
-
+  // Upload de novas imagens
+  const [imageFiles, setImageFiles] = useState<ImagePreview[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState<number | null>(null);
+  
   // Load categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -100,6 +107,81 @@ const ProductForm = () => {
     fetchProduct();
   }, [id, isEditing]);
   
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const newFiles = Array.from(e.target.files);
+    const newPreviews: ImagePreview[] = [];
+    
+    newFiles.forEach(file => {
+      // Check if the file is an image
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} não é uma imagem válida.`);
+        return;
+      }
+      
+      // Check if the file size is less than 2MB
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`${file.name} é muito grande. O tamanho máximo é 2MB.`);
+        return;
+      }
+      
+      const previewUrl = URL.createObjectURL(file);
+      newPreviews.push({ file, previewUrl });
+    });
+    
+    setImageFiles([...imageFiles, ...newPreviews]);
+    
+    // Clear the file input
+    e.target.value = '';
+  };
+  
+  const removeImageFile = (indexToRemove: number) => {
+    setImageFiles(imageFiles.filter((_, index) => index !== indexToRemove));
+    
+    if (primaryImageIndex === indexToRemove) {
+      setPrimaryImageIndex(null);
+    } else if (primaryImageIndex !== null && primaryImageIndex > indexToRemove) {
+      setPrimaryImageIndex(primaryImageIndex - 1);
+    }
+  };
+  
+  const setPrimaryImage = (index: number) => {
+    setPrimaryImageIndex(index);
+  };
+  
+  const uploadImages = async (): Promise<ProductImage[]> => {
+    if (imageFiles.length === 0) return [];
+    
+    setUploadingImage(true);
+    const uploadedImages: ProductImage[] = [];
+    
+    try {
+      for (let i = 0; i < imageFiles.length; i++) {
+        const { file } = imageFiles[i];
+        
+        const url = await uploadProductImage(file);
+        
+        if (url) {
+          uploadedImages.push({
+            id: '',
+            product_id: id || '',
+            url: url,
+            is_primary: primaryImageIndex === i,
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload de imagens:', error);
+      toast.error('Erro ao fazer upload das imagens');
+    } finally {
+      setUploadingImage(false);
+    }
+    
+    return uploadedImages;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -146,6 +228,24 @@ const ProductForm = () => {
         productId = data?.[0].id;
       }
       
+      // Faça upload das novas imagens
+      if (imageFiles.length > 0 && productId) {
+        const uploadedImages = await uploadImages();
+        
+        if (uploadedImages.length > 0) {
+          // Insira as novas imagens no banco de dados
+          const { error } = await supabase
+            .from('product_images')
+            .insert(uploadedImages.map(img => ({
+              product_id: productId,
+              url: img.url,
+              is_primary: img.is_primary
+            })));
+            
+          if (error) throw error;
+        }
+      }
+      
       toast.success(`Produto ${isEditing ? 'atualizado' : 'criado'} com sucesso`);
       navigate('/admin/products');
     } catch (error) {
@@ -157,37 +257,16 @@ const ProductForm = () => {
   };
   
   const handleAddImage = async () => {
-    if (!imageUrl.trim()) {
-      toast.error('URL da imagem é obrigatória');
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('product_images')
-        .insert({
-          product_id: id,
-          url: imageUrl.trim(),
-          is_primary: images.length === 0 // First image is primary
-        })
-        .select();
-        
-      if (error) throw error;
-      
-      if (data) {
-        setImages([...images, data[0]]);
-        setImageUrl('');
-        setShowImageForm(false);
-        toast.success('Imagem adicionada com sucesso');
-      }
-    } catch (error) {
-      console.error('Error adding image:', error);
-      toast.error('Erro ao adicionar imagem');
-    }
+    // Esse método não é mais necessário, substituído por upload de arquivo
+    setShowImageForm(false);
   };
   
-  const handleDeleteImage = async (imageId: string) => {
+  const handleDeleteImage = async (imageId: string, imageUrl: string) => {
     try {
+      // Primeiro exclui a imagem do storage
+      await deleteProductImageFromStorage(imageUrl);
+      
+      // Depois remove o registro do banco de dados
       const { error } = await supabase
         .from('product_images')
         .delete()
@@ -231,6 +310,8 @@ const ProductForm = () => {
       toast.error('Erro ao definir imagem principal');
     }
   };
+  
+  const [showImageForm, setShowImageForm] = useState(false);
 
   return (
     <AdminLayout requiredRole="editor">
@@ -307,7 +388,7 @@ const ProductForm = () => {
                   </div>
                   
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={saving}>
+                    <Button type="submit" disabled={saving || uploadingImage}>
                       {saving && <span className="animate-spin mr-2">⏳</span>}
                       <Save className="h-4 w-4 mr-2" />
                       {isEditing ? 'Atualizar' : 'Criar'} Produto
@@ -319,50 +400,76 @@ const ProductForm = () => {
           </Card>
         </div>
         
-        {isEditing && (
-          <div className="md:col-span-1">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-4 flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Imagens</h3>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowImageForm(!showImageForm)}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
+        <div className="md:col-span-1">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-4 flex justify-between items-center">
+                <h3 className="text-lg font-medium">Imagens</h3>
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <Button variant="outline" size="sm" type="button" className="flex items-center" asChild>
+                      <span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Adicionar imagens
+                      </span>
+                    </Button>
+                  </Label>
                 </div>
-                
-                {showImageForm && (
-                  <div className="mb-6 p-4 border rounded-md">
-                    <div className="space-y-2 mb-4">
-                      <Label htmlFor="imageUrl">URL da Imagem</Label>
-                      <Input
-                        id="imageUrl"
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://exemplo.com/imagem.jpg"
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowImageForm(false)}
+              </div>
+              
+              {/* Previews de novas imagens */}
+              {imageFiles.length > 0 && (
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-sm font-medium text-gray-500">Novas imagens para upload</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {imageFiles.map((file, index) => (
+                      <div 
+                        key={index} 
+                        className={`border rounded-md overflow-hidden ${primaryImageIndex === index ? 'ring-2 ring-primary' : ''}`}
                       >
-                        Cancelar
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={handleAddImage}
-                      >
-                        Adicionar
-                      </Button>
-                    </div>
+                        <div className="h-24 overflow-hidden">
+                          <img 
+                            src={file.previewUrl} 
+                            alt={`Preview ${index}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="p-2 flex justify-between items-center">
+                          <Button
+                            size="sm"
+                            variant={primaryImageIndex === index ? "default" : "ghost"}
+                            onClick={() => setPrimaryImage(index)}
+                            className="text-xs"
+                            type="button"
+                          >
+                            {primaryImageIndex === index ? 'Principal' : 'Definir como principal'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeImageFile(index)}
+                            type="button"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
+              
+              {/* Imagens existentes */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-3">Imagens salvas</h4>
                 
                 {images.length === 0 ? (
                   <div className="text-center py-8 bg-gray-50 rounded-md">
@@ -401,7 +508,7 @@ const ProductForm = () => {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            onClick={() => handleDeleteImage(image.id)}
+                            onClick={() => handleDeleteImage(image.id, image.url)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
@@ -410,10 +517,10 @@ const ProductForm = () => {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminLayout>
   );

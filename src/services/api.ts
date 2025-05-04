@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { v4 as uuidv4 } from 'uuid';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 type Product = Database['public']['Tables']['products']['Row'];
@@ -135,4 +135,54 @@ export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
   }
   
   return data || [];
+};
+
+// Nova função para upload de imagem
+export const uploadProductImage = async (file: File): Promise<string | null> => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${fileName}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('product_images')
+      .upload(filePath, file);
+      
+    if (uploadError) {
+      console.error('Erro no upload da imagem:', uploadError);
+      return null;
+    }
+    
+    const { data } = supabase.storage
+      .from('product_images')
+      .getPublicUrl(filePath);
+      
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Erro ao fazer upload da imagem:', error);
+    return null;
+  }
+};
+
+// Nova função para excluir imagem do storage
+export const deleteProductImageFromStorage = async (url: string): Promise<boolean> => {
+  try {
+    // Extrai o nome do arquivo da URL
+    const fileName = url.split('/').pop();
+    if (!fileName) return false;
+    
+    const { error } = await supabase.storage
+      .from('product_images')
+      .remove([fileName]);
+      
+    if (error) {
+      console.error('Erro ao excluir imagem do storage:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao excluir imagem:', error);
+    return false;
+  }
 };
