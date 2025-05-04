@@ -23,7 +23,6 @@ const Login = () => {
 
     try {
       await signIn(email, password);
-      toast.success('Login realizado com sucesso!');
       navigate('/admin');
     } catch (err: any) {
       console.error('Login error:', err);
