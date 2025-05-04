@@ -43,8 +43,7 @@ export const getCurrentUser = async () => {
 
 export const getUserRole = async (userId: string): Promise<string | null> => {
   try {
-    // Using raw SQL query with service role to bypass RLS policies
-    // This avoids the infinite recursion issue
+    // Using our security definer function to avoid RLS recursion
     const { data, error } = await supabase
       .rpc('get_admin_user_role', { user_id: userId })
       .single();

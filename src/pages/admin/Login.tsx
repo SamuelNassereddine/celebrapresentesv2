@@ -23,10 +23,17 @@ const Login = () => {
 
     try {
       await signIn(email, password);
+      toast.success('Login realizado com sucesso');
       navigate('/admin');
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      if (err.message === 'Usuário não possui permissão de acesso.') {
+        setError('Este usuário não possui permissão para acessar a área administrativa.');
+      } else if (err.message === 'Invalid login credentials') {
+        setError('Credenciais inválidas. Verifique seu email e senha.');
+      } else {
+        setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      }
     } finally {
       setLoading(false);
     }
