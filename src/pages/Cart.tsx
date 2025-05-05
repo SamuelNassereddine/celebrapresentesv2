@@ -62,24 +62,55 @@ const Cart = () => {
     navigate('/checkout/1');
   };
 
+  // Special Items Section - Always show regardless of cart state
+  const renderSpecialItemsSection = () => {
+    return (
+      <section className="mb-8">
+        <h2 className="text-xl md:text-2xl font-playfair font-semibold mb-6">
+          Adicione itens especiais ao seu pedido
+        </h2>
+        {loading ? (
+          <div className="text-center py-8">
+            Carregando itens especiais...
+          </div>
+        ) : error ? (
+          <div className="text-center py-4 text-red-500">
+            {error}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {specialItems.map((item) => (
+              <SpecialItemCard key={item.id} item={item} />
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">Seu Carrinho</h1>
         
         {items.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="mx-auto w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-100">
-              <ShoppingCart className="h-8 w-8 text-gray-400" />
+          <div>
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-100">
+                <ShoppingCart className="h-8 w-8 text-gray-400" />
+              </div>
+              <h2 className="text-xl font-medium mb-2">Seu carrinho está vazio</h2>
+              <p className="text-gray-600 mb-8">Adicione produtos para continuar comprando</p>
+              <Link 
+                to="/products"
+                className="btn-primary"
+              >
+                Ver produtos
+              </Link>
             </div>
-            <h2 className="text-xl font-medium mb-2">Seu carrinho está vazio</h2>
-            <p className="text-gray-600 mb-8">Adicione produtos para continuar comprando</p>
-            <Link 
-              to="/products"
-              className="btn-primary"
-            >
-              Ver produtos
-            </Link>
+            
+            {/* Special Items - Always show even with empty cart */}
+            {renderSpecialItemsSection()}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,9 +163,12 @@ const Cart = () => {
                   ))}
                 </div>
               </Card>
+              
+              {/* Special Items Section - Now positioned here above the order summary */}
+              {renderSpecialItemsSection()}
             </div>
             
-            {/* Order Summary */}
+            {/* Order Summary - Now positioned after special items */}
             <div className="md:col-span-1">
               <Card className="p-6">
                 <h2 className="text-lg font-medium mb-4">Resumo do pedido</h2>
@@ -168,34 +202,6 @@ const Cart = () => {
                 </button>
               </Card>
             </div>
-          </div>
-        )}
-        
-        {/* Special Items Section - Only show when we have items to show */}
-        {items.length > 0 && specialItems.length > 0 && (
-          <section className="mt-12">
-            <h2 className="text-xl md:text-2xl font-playfair font-semibold mb-6">
-              Adicione itens especiais ao seu pedido
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {specialItems.map((item) => (
-                <SpecialItemCard key={item.id} item={item} />
-              ))}
-            </div>
-          </section>
-        )}
-        
-        {/* Show loading state while fetching items */}
-        {loading && (
-          <div className="text-center py-8">
-            Carregando itens especiais...
-          </div>
-        )}
-        
-        {/* Show error state if fetch failed */}
-        {error && (
-          <div className="text-center py-4 text-red-500">
-            {error}
           </div>
         )}
       </div>
