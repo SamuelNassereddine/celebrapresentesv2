@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -246,7 +245,7 @@ export const deleteDeliveryTimeSlot = async (id: string): Promise<boolean> => {
   }
 };
 
-// Função para upload de imagem
+// Função para upload de imagem de produto
 export const uploadProductImage = async (file: File): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
@@ -269,6 +268,35 @@ export const uploadProductImage = async (file: File): Promise<string | null> => 
     return data.publicUrl;
   } catch (error) {
     console.error('Erro ao fazer upload da imagem:', error);
+    return null;
+  }
+};
+
+// Função para upload de logo da loja
+export const uploadLogoImage = async (file: File): Promise<string | null> => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo-${uuidv4()}.${fileExt}`;
+    const filePath = `${fileName}`;
+    
+    // Fazer upload do arquivo para o bucket 'logos'
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(filePath, file);
+      
+    if (uploadError) {
+      console.error('Erro no upload do logo:', uploadError);
+      return null;
+    }
+    
+    // Obter a URL pública da imagem
+    const { data } = supabase.storage
+      .from('logos')
+      .getPublicUrl(filePath);
+      
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Erro ao fazer upload do logo:', error);
     return null;
   }
 };

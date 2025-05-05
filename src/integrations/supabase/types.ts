@@ -327,7 +327,9 @@ export type Database = {
       store_settings: {
         Row: {
           created_at: string | null
+          footer_description: string | null
           id: string
+          instagram_url: string | null
           logo_url: string | null
           name: string
           pix_enabled: boolean | null
@@ -336,12 +338,16 @@ export type Database = {
           primary_text_color: string | null
           secondary_color: string | null
           secondary_text_color: string | null
+          store_address: string | null
+          store_email: string | null
           updated_at: string | null
           whatsapp_number: string | null
         }
         Insert: {
           created_at?: string | null
+          footer_description?: string | null
           id?: string
+          instagram_url?: string | null
           logo_url?: string | null
           name?: string
           pix_enabled?: boolean | null
@@ -350,12 +356,16 @@ export type Database = {
           primary_text_color?: string | null
           secondary_color?: string | null
           secondary_text_color?: string | null
+          store_address?: string | null
+          store_email?: string | null
           updated_at?: string | null
           whatsapp_number?: string | null
         }
         Update: {
           created_at?: string | null
+          footer_description?: string | null
           id?: string
+          instagram_url?: string | null
           logo_url?: string | null
           name?: string
           pix_enabled?: boolean | null
@@ -364,6 +374,8 @@ export type Database = {
           primary_text_color?: string | null
           secondary_color?: string | null
           secondary_text_color?: string | null
+          store_address?: string | null
+          store_email?: string | null
           updated_at?: string | null
           whatsapp_number?: string | null
         }

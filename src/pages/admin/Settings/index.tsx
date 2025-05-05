@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import AdminLayout from '../AdminLayout';
@@ -7,14 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Save, Plus, Trash, Clock } from 'lucide-react';
+import { Save, Plus, Trash, Clock, Upload, Instagram, Mail, Phone, Home, Image } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   fetchDeliveryTimeSlots, 
   createDeliveryTimeSlot, 
   updateDeliveryTimeSlot,
-  deleteDeliveryTimeSlot
+  deleteDeliveryTimeSlot,
+  uploadLogoImage
 } from '@/services/api';
 
 type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
@@ -26,12 +28,14 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [timeSlotLoading, setTimeSlotLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [newTimeSlot, setNewTimeSlot] = useState({
     name: '',
     start_time: '',
     end_time: '',
     active: true
   });
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -168,6 +172,42 @@ const Settings = () => {
     }
   };
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !settings) return;
+    
+    setUploadingLogo(true);
+    try {
+      const logoUrl = await uploadLogoImage(file);
+      
+      if (logoUrl) {
+        // Update settings with new logo URL
+        const updatedSettings = { ...settings, logo_url: logoUrl };
+        setSettings(updatedSettings);
+        
+        // Save to database
+        const { error } = await supabase
+          .from('store_settings')
+          .update({ logo_url: logoUrl })
+          .eq('id', settings.id);
+          
+        if (error) throw error;
+        
+        toast.success('Logo atualizado com sucesso');
+      } else {
+        throw new Error('Falha ao fazer upload da imagem');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Erro ao fazer upload do logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoFileInputRef.current) {
+        logoFileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
@@ -239,6 +279,7 @@ const Settings = () => {
       <Tabs defaultValue="general">
         <TabsList className="mb-6">
           <TabsTrigger value="general">Geral</TabsTrigger>
+          <TabsTrigger value="contact">Contato</TabsTrigger>
           <TabsTrigger value="payments">Pagamentos</TabsTrigger>
           <TabsTrigger value="appearance">Aparência</TabsTrigger>
           <TabsTrigger value="delivery">Horários de Entrega</TabsTrigger>
@@ -257,31 +298,75 @@ const Settings = () => {
             </div>
 
             <div>
-              <Label htmlFor="logo_url">URL do Logo</Label>
-              <Input
-                id="logo_url"
-                value={settings.logo_url || ''}
-                onChange={(e) => handleChange('logo_url', e.target.value)}
-                className="mt-1"
-                placeholder="https://exemplo.com/logo.png"
-              />
-              {settings.logo_url && (
-                <div className="mt-2">
-                  <img 
-                    src={settings.logo_url} 
-                    alt="Logo Preview" 
-                    className="h-12 object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      toast.error('Não foi possível carregar a imagem');
-                    }}
+              <Label htmlFor="logo">Logotipo</Label>
+              <div className="mt-1 space-y-3">
+                {settings.logo_url && (
+                  <div className="mt-2 p-4 border rounded-md">
+                    <img 
+                      src={settings.logo_url} 
+                      alt="Logo Preview" 
+                      className="h-16 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        toast.error('Não foi possível carregar a imagem');
+                      }}
+                    />
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => logoFileInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                  >
+                    {uploadingLogo ? (
+                      'Enviando...'
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Enviar Logotipo
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    ref={logoFileInputRef}
+                    type="file"
+                    id="logo-file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
                   />
+                  
+                  <span className="text-sm text-gray-500">
+                    Tamanho recomendado: 200x80px
+                  </span>
                 </div>
-              )}
+              </div>
             </div>
 
             <div>
-              <Label htmlFor="whatsapp_number">Número WhatsApp</Label>
+              <Label htmlFor="footer_description">Descrição do Rodapé</Label>
+              <Textarea
+                id="footer_description"
+                value={settings.footer_description || ''}
+                onChange={(e) => handleChange('footer_description', e.target.value)}
+                className="mt-1"
+                placeholder="Uma breve descrição sobre sua loja de flores"
+                rows={3}
+              />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="contact" className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="whatsapp_number" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Número WhatsApp
+              </Label>
               <Input
                 id="whatsapp_number"
                 value={settings.whatsapp_number || ''}
@@ -292,6 +377,48 @@ const Settings = () => {
               <p className="text-xs text-gray-500 mt-1">
                 Formato: código do país + DDD + número (ex: 5511999999999)
               </p>
+            </div>
+
+            <div>
+              <Label htmlFor="store_email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email de Contato
+              </Label>
+              <Input
+                id="store_email"
+                value={settings.store_email || ''}
+                onChange={(e) => handleChange('store_email', e.target.value)}
+                className="mt-1"
+                placeholder="contato@floresecia.com.br"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="store_address" className="flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Endereço da Loja
+              </Label>
+              <Input
+                id="store_address"
+                value={settings.store_address || ''}
+                onChange={(e) => handleChange('store_address', e.target.value)}
+                className="mt-1"
+                placeholder="Rua das Flores, 123 - São Paulo, SP"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="instagram_url" className="flex items-center gap-2">
+                <Instagram className="h-4 w-4" />
+                Link do Instagram
+              </Label>
+              <Input
+                id="instagram_url"
+                value={settings.instagram_url || ''}
+                onChange={(e) => handleChange('instagram_url', e.target.value)}
+                className="mt-1"
+                placeholder="https://instagram.com/floresecia"
+              />
             </div>
           </div>
         </TabsContent>

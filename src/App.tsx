@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 // Import pages
 const Home = lazy(() => import('@/pages/Home'));
 const Products = lazy(() => import('@/pages/Products'));
+const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
 const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
 const Cart = lazy(() => import('@/pages/Cart'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -45,7 +46,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/category/:slug" element={<Products />} />
+              <Route path="/category/:slug" element={<CategoryPage />} />
               <Route path="/cart" element={<Cart />} />
               
               {/* Checkout Routes */}
