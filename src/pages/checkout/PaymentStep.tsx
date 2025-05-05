@@ -278,11 +278,13 @@ const PaymentStep = () => {
       console.log('PaymentStep - Clearing cart and checkout data');
       clearCart();
       
-      // Manter o ID do pedido para uso na tela de confirmação
-      // Mas limpar os outros dados temporários
+      // Clear ALL checkout data including the order ID to ensure new purchases get a new ID
+      console.log('PaymentStep - Removing all checkout data from localStorage');
+      localStorage.removeItem('currentOrderId');
       localStorage.removeItem('checkoutIdentification');
       localStorage.removeItem('checkoutDelivery');
       localStorage.removeItem('checkoutPersonalization');
+      localStorage.removeItem('checkoutStep3Complete');
       
       // Open WhatsApp in a new tab
       const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;

@@ -6,7 +6,18 @@ import { Check } from 'lucide-react';
 
 const Confirmation = () => {
   useEffect(() => {
+    // Scroll to top
     window.scrollTo(0, 0);
+    
+    // Clear all checkout related data from localStorage
+    console.log('Confirmation - Cleaning up checkout data from localStorage');
+    localStorage.removeItem('currentOrderId');
+    localStorage.removeItem('checkoutIdentification');
+    localStorage.removeItem('checkoutDelivery');
+    localStorage.removeItem('checkoutPersonalization');
+    localStorage.removeItem('checkoutStep3Complete');
+    
+    // Note: We don't clear the cart because it's already cleared in the PaymentStep
   }, []);
   
   return (

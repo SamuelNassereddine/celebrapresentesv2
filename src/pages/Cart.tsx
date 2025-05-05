@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -46,6 +47,19 @@ const Cart = () => {
   
   const handleRemoveItem = (id: string) => {
     removeItem(id);
+  };
+  
+  const handleCheckout = () => {
+    // When starting a new checkout process, ensure we clear any previous checkout data
+    // This will force the creation of a new order ID when the user goes to the first step
+    localStorage.removeItem('currentOrderId');
+    localStorage.removeItem('checkoutIdentification');
+    localStorage.removeItem('checkoutDelivery');
+    localStorage.removeItem('checkoutPersonalization');
+    localStorage.removeItem('checkoutStep3Complete');
+    
+    // Navigate to the first checkout step
+    navigate('/checkout/1');
   };
 
   return (
@@ -147,7 +161,7 @@ const Cart = () => {
                   </div>
                 </div>
                 <button 
-                  onClick={() => navigate('/checkout/1')}
+                  onClick={handleCheckout}
                   className="bg-primary text-white w-full py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
                 >
                   Finalizar Compra
