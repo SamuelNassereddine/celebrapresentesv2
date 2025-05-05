@@ -157,6 +157,7 @@ export type Database = {
           order_number: string | null
           personalization_text: string | null
           recipient_name: string | null
+          recipient_phone: string | null
           status: string
           total_price: number
           updated_at: string | null
@@ -179,6 +180,7 @@ export type Database = {
           order_number?: string | null
           personalization_text?: string | null
           recipient_name?: string | null
+          recipient_phone?: string | null
           status?: string
           total_price: number
           updated_at?: string | null
@@ -201,6 +203,7 @@ export type Database = {
           order_number?: string | null
           personalization_text?: string | null
           recipient_name?: string | null
+          recipient_phone?: string | null
           status?: string
           total_price?: number
           updated_at?: string | null

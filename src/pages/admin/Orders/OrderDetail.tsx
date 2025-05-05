@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
+type DeliveryTimeSlot = Database['public']['Tables']['delivery_time_slots']['Row'];
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
@@ -44,6 +45,7 @@ const OrderDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [timeSlot, setTimeSlot] = useState<DeliveryTimeSlot | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
 
@@ -60,6 +62,19 @@ const OrderDetail = () => {
 
         if (orderError) throw orderError;
         setOrder(orderData);
+        
+        // Fetch delivery time slot if exists
+        if (orderData.delivery_time_slot_id) {
+          const { data: timeSlotData, error: timeSlotError } = await supabase
+            .from('delivery_time_slots')
+            .select('*')
+            .eq('id', orderData.delivery_time_slot_id)
+            .single();
+            
+          if (!timeSlotError && timeSlotData) {
+            setTimeSlot(timeSlotData);
+          }
+        }
 
         // Fetch order items
         const { data: itemsData, error: itemsError } = await supabase
@@ -189,13 +204,28 @@ const OrderDetail = () => {
                   <p className="text-gray-600">({order.customer_phone})</p>
                   <p className="text-gray-600">Email: {order.customer_email || 'não informado'}</p>
                 </div>
+                
+                {order.recipient_name && order.recipient_name !== order.customer_name && (
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-medium flex items-center gap-2 mb-2">
+                      <span className="text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                      </span>
+                      Dados do Presenteado
+                    </h4>
+                    <p className="text-gray-700 font-medium">{order.recipient_name}</p>
+                    {order.recipient_phone && (
+                      <p className="text-gray-600">Telefone: {order.recipient_phone}</p>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <h4 className="font-medium flex items-center gap-2 mb-2">
                     <span className="text-gray-500">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                     </span>
-                    Endereço do Comprador
+                    Endereço de Entrega
                   </h4>
                   {order.address_street ? (
                     <p className="text-gray-600">
@@ -217,9 +247,15 @@ const OrderDetail = () => {
                     Data e Horário
                   </h4>
                   <p className="text-gray-600">
-                    Data: {formatDate(order.created_at)}<br />
+                    Data do pedido: {formatDate(order.created_at)}<br />
                     {order.delivery_date && (
-                      <>Entrega prevista: {formatDate(order.delivery_date)}</>
+                      <>Data de entrega: {formatDate(order.delivery_date)}</>
+                    )}
+                    {timeSlot && (
+                      <>
+                        <br />
+                        Horário de entrega: {timeSlot.name} ({timeSlot.start_time} - {timeSlot.end_time})
+                      </>
                     )}
                   </p>
                 </div>

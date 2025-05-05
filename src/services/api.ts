@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -128,7 +129,8 @@ export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
   const { data, error } = await supabase
     .from('delivery_time_slots')
     .select('*')
-    .eq('active', true);
+    .eq('active', true)
+    .order('name');
   
   if (error) {
     console.error('Error fetching delivery time slots:', error);
@@ -136,6 +138,59 @@ export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
   }
   
   return data || [];
+};
+
+export const createDeliveryTimeSlot = async (timeSlot: {
+  name: string;
+  start_time: string;
+  end_time: string;
+  active?: boolean;
+}): Promise<DeliveryTimeSlot | null> => {
+  const { data, error } = await supabase
+    .from('delivery_time_slots')
+    .insert(timeSlot)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating delivery time slot:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const updateDeliveryTimeSlot = async (
+  id: string, 
+  updates: Partial<DeliveryTimeSlot>
+): Promise<DeliveryTimeSlot | null> => {
+  const { data, error } = await supabase
+    .from('delivery_time_slots')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating delivery time slot:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const deleteDeliveryTimeSlot = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('delivery_time_slots')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting delivery time slot:', error);
+    return false;
+  }
+  
+  return true;
 };
 
 // Função para upload de imagem
@@ -188,7 +243,7 @@ export const deleteProductImageFromStorage = async (url: string): Promise<boolea
   }
 };
 
-// New functions for special items
+// Special items functions
 export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
   console.log('fetchSpecialItems - Starting fetch');
   const { data, error } = await supabase
@@ -265,6 +320,7 @@ export interface OrderData {
   customer_phone: string;
   customer_email: string | null;
   recipient_name: string | null;
+  recipient_phone: string | null;
   address_street: string | null;
   address_number: string | null;
   address_complement: string | null;
@@ -277,7 +333,7 @@ export interface OrderData {
   personalization_text: string | null;
   total_price: number;
   status: string;
-  order_number: string; // Campo adicionado para número do pedido visual
+  order_number: string;
 }
 
 // Nova interface para itens do pedido

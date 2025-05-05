@@ -1,3 +1,4 @@
+
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -16,6 +17,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
+import { fetchDeliveryTimeSlots } from '@/services/api';
 
 interface DeliveryTimeSlot {
   id: string;
@@ -34,6 +36,7 @@ const DeliveryStep = () => {
   const [formData, setFormData] = useState({
     recipientSelf: true,
     recipientName: '',
+    recipientPhone: '',
     cep: '',
     street: '',
     number: '',
@@ -47,7 +50,7 @@ const DeliveryStep = () => {
   
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [buyerName, setBuyerName] = useState('');
-  const [shippingCost, setShippingCost] = useState<number | null>(null);
+  const [buyerPhone, setBuyerPhone] = useState('');
   
   useEffect(() => {
     // Verificar se temos um ID de pedido
@@ -78,6 +81,7 @@ const DeliveryStep = () => {
       
       // Preencher dados do cliente
       setBuyerName(orderData.customer_name);
+      setBuyerPhone(orderData.customer_phone);
       
       // Preencher dados de entrega se existirem
       if (orderData.recipient_name || orderData.address_street) {
@@ -85,6 +89,7 @@ const DeliveryStep = () => {
           ...prev,
           recipientSelf: orderData.recipient_name === orderData.customer_name,
           recipientName: orderData.recipient_name || '',
+          recipientPhone: orderData.recipient_phone || '',
           street: orderData.address_street || '',
           number: orderData.address_number || '',
           complement: orderData.address_complement || '',
@@ -96,13 +101,14 @@ const DeliveryStep = () => {
           deliveryDate: orderData.delivery_date ? new Date(orderData.delivery_date) : new Date()
         }));
       } else {
-        // If identification data exists, pre-populate the recipientName
+        // If identification data exists, pre-populate the recipientName with buyer's name
         const identificationData = localStorage.getItem('checkoutIdentification');
         if (identificationData) {
-          const { name } = JSON.parse(identificationData);
+          const { name, phone } = JSON.parse(identificationData);
           setFormData(prev => ({
             ...prev,
-            recipientName: name
+            recipientName: name,
+            recipientPhone: phone
           }));
         }
         
@@ -120,25 +126,19 @@ const DeliveryStep = () => {
     };
     
     loadOrderData();
-    fetchDeliveryTimeSlots();
+    loadDeliveryTimeSlots();
   }, [navigate]);
   
-  const fetchDeliveryTimeSlots = async () => {
+  const loadDeliveryTimeSlots = async () => {
     try {
-      const { data, error } = await supabase
-        .from('delivery_time_slots')
-        .select('*')
-        .eq('active', true)
-        .order('name');
-      
-      if (error) throw error;
-      setDeliveryTimeSlots(data || []);
+      const timeSlots = await fetchDeliveryTimeSlots();
+      setDeliveryTimeSlots(timeSlots);
       
       // If there's only one time slot, select it by default
-      if (data && data.length === 1 && !formData.deliveryTimeSlot) {
+      if (timeSlots.length === 1 && !formData.deliveryTimeSlot) {
         setFormData(prev => ({
           ...prev,
-          deliveryTimeSlot: data[0].id
+          deliveryTimeSlot: timeSlots[0].id
         }));
       }
     } catch (error) {
@@ -174,6 +174,24 @@ const DeliveryStep = () => {
       return;
     }
     
+    // For phone field, apply mask
+    if (name === 'recipientPhone') {
+      const cleaned = value.replace(/\D/g, '');
+      let formatted = cleaned;
+      
+      if (cleaned.length <= 11) {
+        if (cleaned.length > 2) {
+          formatted = `(${cleaned.substring(0, 2)}) ${cleaned.substring(2)}`;
+        }
+        if (cleaned.length > 7) {
+          formatted = `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 7)}-${cleaned.substring(7)}`;
+        }
+      }
+      
+      setFormData({ ...formData, recipientPhone: formatted });
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -194,11 +212,7 @@ const DeliveryStep = () => {
         });
         return;
       }
-      
-      // Simulate shipping cost calculation based on CEP
-      const randomShipping = Math.floor(Math.random() * 15) + 5; // Random value between 5 and 20
-      setShippingCost(randomShipping);
-      
+
       setFormData(prev => ({
         ...prev,
         street: data.logradouro || prev.street,
@@ -226,6 +240,7 @@ const DeliveryStep = () => {
         .from('orders')
         .update({
           recipient_name: formData.recipientSelf ? buyerName : formData.recipientName,
+          recipient_phone: formData.recipientSelf ? buyerPhone : formData.recipientPhone,
           address_street: formData.street,
           address_number: formData.number,
           address_complement: formData.complement || null,
@@ -269,7 +284,28 @@ const DeliveryStep = () => {
       toast({
         variant: "destructive",
         title: "Campo obrigatório",
-        description: "Por favor, insira o nome do destinatário.",
+        description: "Por favor, insira o nome do presenteado.",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    if (!formData.recipientSelf && !formData.recipientPhone) {
+      toast({
+        variant: "destructive",
+        title: "Campo obrigatório",
+        description: "Por favor, insira o telefone do presenteado.",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
+    if (!formData.recipientSelf && formData.recipientPhone && !phoneRegex.test(formData.recipientPhone)) {
+      toast({
+        variant: "destructive",
+        title: "Telefone inválido",
+        description: "Por favor, insira um telefone válido no formato (99) 99999-9999.",
       });
       setLoading(false);
       return;
@@ -406,20 +442,38 @@ const DeliveryStep = () => {
                     </div>
                     
                     {!formData.recipientSelf && (
-                      <div className="mt-4">
-                        <label htmlFor="recipientName" className="block text-gray-700 mb-2">
-                          Nome do Destinatário
-                        </label>
-                        <input
-                          id="recipientName"
-                          name="recipientName"
-                          type="text"
-                          value={formData.recipientName}
-                          onChange={handleChange}
-                          placeholder="Nome completo de quem vai receber"
-                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required={!formData.recipientSelf}
-                        />
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="recipientName" className="block text-gray-700 mb-2">
+                            Nome do Presenteado
+                          </label>
+                          <input
+                            id="recipientName"
+                            name="recipientName"
+                            type="text"
+                            value={formData.recipientName}
+                            onChange={handleChange}
+                            placeholder="Nome completo de quem vai receber"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required={!formData.recipientSelf}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="recipientPhone" className="block text-gray-700 mb-2">
+                            Telefone do Presenteado
+                          </label>
+                          <input
+                            id="recipientPhone"
+                            name="recipientPhone"
+                            type="tel"
+                            value={formData.recipientPhone}
+                            onChange={handleChange}
+                            placeholder="(00) 00000-0000"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required={!formData.recipientSelf}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -599,37 +653,38 @@ const DeliveryStep = () => {
                           Horário de Entrega
                         </label>
                         <RadioGroup className="space-y-3">
-                          {deliveryTimeSlots.map(slot => (
-                            <Card 
-                              key={slot.id} 
-                              className={`cursor-pointer border transition-all ${
-                                formData.deliveryTimeSlot === slot.id 
-                                  ? 'border-primary ring-1 ring-primary'
-                                  : 'hover:border-gray-300'
-                              }`}
-                              onClick={() => setFormData(prev => ({ ...prev, deliveryTimeSlot: slot.id }))}
-                            >
-                              <CardContent className="flex items-center justify-between p-4">
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem 
-                                    value={slot.id} 
-                                    id={`slot-${slot.id}`} 
-                                    checked={formData.deliveryTimeSlot === slot.id}
-                                  />
-                                  <div>
-                                    <p className="font-medium">{slot.name}</p>
-                                    <p className="text-sm text-gray-500 flex items-center">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {slot.start_time} - {slot.end_time}
-                                    </p>
+                          {deliveryTimeSlots.length > 0 ? (
+                            deliveryTimeSlots.map(slot => (
+                              <Card 
+                                key={slot.id} 
+                                className={`cursor-pointer border transition-all ${
+                                  formData.deliveryTimeSlot === slot.id 
+                                    ? 'border-primary ring-1 ring-primary'
+                                    : 'hover:border-gray-300'
+                                }`}
+                                onClick={() => setFormData(prev => ({ ...prev, deliveryTimeSlot: slot.id }))}
+                              >
+                                <CardContent className="flex items-center justify-between p-4">
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem 
+                                      value={slot.id} 
+                                      id={`slot-${slot.id}`} 
+                                      checked={formData.deliveryTimeSlot === slot.id}
+                                    />
+                                    <div>
+                                      <p className="font-medium">{slot.name}</p>
+                                      <p className="text-sm text-gray-500 flex items-center">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {slot.start_time} - {slot.end_time}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="text-primary font-semibold">
-                                  R$ {Math.floor(Math.random() * 10) + 9},90
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
+                                </CardContent>
+                              </Card>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 italic">Nenhum horário disponível</p>
+                          )}
                         </RadioGroup>
                       </div>
                     </div>
@@ -707,25 +762,13 @@ const DeliveryStep = () => {
                   </p>
                 </div>
                 
-                <div className="flex justify-between">
-                  <p className="text-gray-600">Frete</p>
-                  <p className="font-medium">
-                    {shippingCost !== null 
-                      ? new Intl.NumberFormat('pt-BR', { 
-                        style: 'currency', 
-                        currency: 'BRL' 
-                      }).format(shippingCost)
-                      : 'Calculando...'}
-                  </p>
-                </div>
-                
                 <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-semibold">
                   <p>Total</p>
                   <p>
                     {new Intl.NumberFormat('pt-BR', { 
                       style: 'currency', 
                       currency: 'BRL' 
-                    }).format(totalPrice + (shippingCost || 0))}
+                    }).format(totalPrice)}
                   </p>
                 </div>
               </div>
