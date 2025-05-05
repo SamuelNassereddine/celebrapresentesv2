@@ -18,7 +18,7 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
   
   const handleAddToCart = () => {
     addItem({
-      id: item.id,
+      id: `special-${item.id}`,  // Prefix ID with 'special-' to identify special items
       title: item.title,
       price: Number(item.price),
       quantity: 1,

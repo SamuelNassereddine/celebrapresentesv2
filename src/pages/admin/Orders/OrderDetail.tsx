@@ -83,6 +83,7 @@ const OrderDetail = () => {
           .eq('order_id', id);
 
         if (itemsError) throw itemsError;
+        console.log('Fetched order items:', itemsData);
         setOrderItems(itemsData || []);
       } catch (error) {
         console.error('Error fetching order details:', error);
@@ -133,6 +134,11 @@ const OrderDetail = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  // Function to identify if an item is a special item
+  const isSpecialItem = (item: OrderItem) => {
+    return item.product_id === null;
   };
 
   if (loading) {
@@ -293,7 +299,12 @@ const OrderDetail = () => {
                   orderItems.map((item) => (
                     <div key={item.id} className="flex justify-between items-center py-2 border-b last:border-0">
                       <div>
-                        <p className="font-medium">{item.product_title}</p>
+                        <p className="font-medium">
+                          {item.product_title}
+                          {isSpecialItem(item) && (
+                            <Badge variant="outline" className="ml-2 text-xs">Item Especial</Badge>
+                          )}
+                        </p>
                         <p className="text-sm text-gray-500">{item.quantity}x {formatCurrency(item.unit_price)}</p>
                       </div>
                       <div className="text-right font-medium">
