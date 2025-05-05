@@ -26,9 +26,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session) {
           console.log("Active session found:", session.user.id);
-          // Admin login simplificado
+          // Admin login simplificado - garantindo que sempre terá permissão 'master'
           setUser({ email: 'admin' });
-          setRole('master');
+          setRole('master'); // Garantindo que o role é sempre 'master'
           
           // Verificar se o token de sessão é válido
           const { data: userResponse, error: userError } = await supabase
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("Auth state changed:", event);
         if (event === 'SIGNED_IN' && session) {
           setUser({ email: 'admin' });
-          setRole('master');
+          setRole('master'); // Garantindo que o role é sempre 'master'
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setRole(null);
@@ -96,9 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         console.log("Authentication successful, session:", data.session?.user?.id);
         
-        // Definir o usuário como admin
+        // Definir o usuário como admin com role 'master'
         setUser({ email: 'admin' });
-        setRole('master');
+        setRole('master'); // Garantindo que o role é sempre 'master'
         
         toast.success('Login realizado com sucesso');
         return;

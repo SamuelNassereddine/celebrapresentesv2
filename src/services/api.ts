@@ -174,7 +174,7 @@ export const createDeliveryTimeSlot = async (timeSlot: {
     // Adicionar campo fee se não estiver presente
     const slotWithFee = {
       ...timeSlot,
-      fee: timeSlot.fee || 10.00 // Valor padrão se não for fornecido
+      fee: timeSlot.fee !== undefined ? timeSlot.fee : 10.00 // Valor padrão se não for fornecido
     };
     
     const { data, error } = await supabase
@@ -192,7 +192,7 @@ export const createDeliveryTimeSlot = async (timeSlot: {
     return data;
   } catch (error) {
     console.error('Error in createDeliveryTimeSlot:', error);
-    return null;
+    throw error; // Re-throw the error for better error handling
   }
 };
 
