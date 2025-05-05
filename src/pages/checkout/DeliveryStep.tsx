@@ -105,33 +105,54 @@ const DeliveryStep = () => {
           deliveryDate: orderData.delivery_date ? new Date(orderData.delivery_date) : new Date()
         }));
       } else {
-        // If identification data exists, pre-populate the recipientName with buyer's name
-        const identificationData = localStorage.getItem('checkoutIdentification');
-        if (identificationData) {
-          const { name, phone } = JSON.parse(identificationData);
-          setFormData(prev => ({
-            ...prev,
-            recipientName: name,
-            recipientPhone: phone
-          }));
-        }
+        // Se a opção "recipientSelf" está marcada como verdadeira, preencher com dados do comprador
+        // Caso contrário, deixar em branco para o usuário preencher manualmente
+        setFormData(prev => ({
+          ...prev,
+          recipientName: prev.recipientSelf ? buyerName : '',
+          recipientPhone: prev.recipientSelf ? buyerPhone : '',
+        }));
         
         // Check if there's saved delivery data
         const savedDeliveryData = localStorage.getItem('checkoutDelivery');
         if (savedDeliveryData) {
           const parsedData = JSON.parse(savedDeliveryData);
           // Set the date as a Date object
-          setFormData({
+          setFormData(prevData => ({
+            ...prevData,
             ...parsedData,
+            recipientName: parsedData.recipientSelf ? buyerName : parsedData.recipientName,
+            recipientPhone: parsedData.recipientSelf ? buyerPhone : parsedData.recipientPhone,
             deliveryDate: parsedData.deliveryDate ? new Date(parsedData.deliveryDate) : new Date()
-          });
+          }));
         }
       }
     };
     
     loadOrderData();
     loadDeliveryTimeSlots();
-  }, [navigate]);
+  }, [navigate, buyerName, buyerPhone]);
+  
+  // Efeito para atualizar os dados de destinatário quando recipientSelf muda
+  useEffect(() => {
+    if (formData.recipientSelf) {
+      setFormData(prev => ({
+        ...prev,
+        recipientName: buyerName,
+        recipientPhone: buyerPhone,
+        // Limpar campos do presenteado quando a opção "Eu mesmo vou receber" é selecionada
+        presentedName: '',
+        presentedPhone: '',
+      }));
+    } else {
+      // Limpar os campos quando selecionar "Presente para outra pessoa"
+      setFormData(prev => ({
+        ...prev,
+        recipientName: '',
+        recipientPhone: '',
+      }));
+    }
+  }, [formData.recipientSelf, buyerName, buyerPhone]);
   
   const loadDeliveryTimeSlots = async () => {
     try {
