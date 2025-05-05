@@ -10,17 +10,24 @@ type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
 export const fetchStoreSettings = async (): Promise<StoreSettings | null> => {
-  const { data, error } = await supabase
-    .from('store_settings')
-    .select('*')
-    .single();
-  
-  if (error) {
-    console.error('Error fetching store settings:', error);
+  console.log("fetchStoreSettings - Starting fetch");
+  try {
+    const { data, error } = await supabase
+      .from('store_settings')
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Error fetching store settings:', error);
+      return null;
+    }
+    
+    console.log("fetchStoreSettings - Retrieved data:", data);
+    return data;
+  } catch (error) {
+    console.error('Error in fetchStoreSettings:', error);
     return null;
   }
-  
-  return data;
 };
 
 export const fetchCategories = async (): Promise<Category[]> => {
@@ -275,12 +282,14 @@ export const uploadProductImage = async (file: File): Promise<string | null> => 
 // Função para upload de logo da loja
 export const uploadLogoImage = async (file: File): Promise<string | null> => {
   try {
+    console.log("uploadLogoImage - Starting upload for file:", file.name);
     const fileExt = file.name.split('.').pop();
     const fileName = `logo-${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
     
     // Fazer upload do arquivo para o bucket 'logos'
-    const { error: uploadError } = await supabase.storage
+    console.log("Uploading to storage bucket 'logos'...");
+    const { error: uploadError, data: uploadData } = await supabase.storage
       .from('logos')
       .upload(filePath, file);
       
@@ -289,11 +298,14 @@ export const uploadLogoImage = async (file: File): Promise<string | null> => {
       return null;
     }
     
+    console.log("Upload successful, getting public URL...");
+    
     // Obter a URL pública da imagem
     const { data } = supabase.storage
       .from('logos')
       .getPublicUrl(filePath);
       
+    console.log("Public URL obtained:", data.publicUrl);
     return data.publicUrl;
   } catch (error) {
     console.error('Erro ao fazer upload do logo:', error);

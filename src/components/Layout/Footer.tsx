@@ -11,18 +11,29 @@ type Category = Database['public']['Tables']['categories']['Row'];
 const Footer = () => {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      // Load store settings
-      const storeSettings = await fetchStoreSettings();
-      if (storeSettings) {
-        setSettings(storeSettings);
+      setLoading(true);
+      try {
+        // Load store settings
+        const storeSettings = await fetchStoreSettings();
+        if (storeSettings) {
+          console.log("Footer: Loaded store settings:", storeSettings);
+          setSettings(storeSettings);
+        } else {
+          console.error("Footer: Failed to load store settings");
+        }
+        
+        // Load categories
+        const categoryData = await fetchCategories();
+        setCategories(categoryData);
+      } catch (error) {
+        console.error("Footer: Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      // Load categories
-      const categoryData = await fetchCategories();
-      setCategories(categoryData);
     };
 
     loadData();
@@ -42,6 +53,10 @@ const Footer = () => {
                 src={settings.logo_url} 
                 alt={settings?.name || 'Flor & Cia'} 
                 className="h-12 object-contain mb-4"
+                onError={(e) => {
+                  console.error("Failed to load logo:", settings.logo_url);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
             )}
             

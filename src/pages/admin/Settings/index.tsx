@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
@@ -38,29 +39,35 @@ const Settings = () => {
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('store_settings')
-          .select('*')
-          .single();
-          
-        if (error) throw error;
-        setSettings(data);
-        
-        // Fetch delivery time slots
-        loadDeliveryTimeSlots();
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-        toast.error('Erro ao carregar configurações');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSettings();
   }, []);
+  
+  const fetchSettings = async () => {
+    setLoading(true);
+    try {
+      console.log("Fetching store settings...");
+      const { data, error } = await supabase
+        .from('store_settings')
+        .select('*')
+        .single();
+        
+      if (error) {
+        console.error('Error fetching settings:', error);
+        throw error;
+      }
+      
+      console.log("Retrieved store settings:", data);
+      setSettings(data);
+      
+      // Fetch delivery time slots
+      loadDeliveryTimeSlots();
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      toast.error('Erro ao carregar configurações');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const loadDeliveryTimeSlots = async () => {
     setTimeSlotLoading(true);
@@ -77,6 +84,7 @@ const Settings = () => {
 
   const handleChange = (field: keyof StoreSettings, value: any) => {
     if (settings) {
+      console.log(`Updating field ${String(field)} to value:`, value);
       setSettings({ ...settings, [field]: value });
     }
   };
@@ -174,13 +182,18 @@ const Settings = () => {
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !settings) return;
+    if (!file || !settings) {
+      console.log("No file selected or settings not loaded");
+      return;
+    }
     
     setUploadingLogo(true);
     try {
+      console.log("Uploading logo...", file.name);
       const logoUrl = await uploadLogoImage(file);
       
       if (logoUrl) {
+        console.log("Logo uploaded successfully, URL:", logoUrl);
         // Update settings with new logo URL
         const updatedSettings = { ...settings, logo_url: logoUrl };
         setSettings(updatedSettings);
@@ -191,7 +204,10 @@ const Settings = () => {
           .update({ logo_url: logoUrl })
           .eq('id', settings.id);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error saving logo URL to database:", error);
+          throw error;
+        }
         
         toast.success('Logo atualizado com sucesso');
       } else {
@@ -210,18 +226,28 @@ const Settings = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!settings) return;
+    if (!settings) {
+      console.error("No settings to save");
+      return;
+    }
     
     setSaving(true);
     try {
+      console.log("Saving settings:", settings);
       const { error } = await supabase
         .from('store_settings')
         .update(settings)
         .eq('id', settings.id);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving settings:", error);
+        throw error;
+      }
       
       toast.success('Configurações salvas com sucesso');
+      
+      // Refresh the settings to ensure we have the latest data
+      fetchSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error('Erro ao salvar configurações');

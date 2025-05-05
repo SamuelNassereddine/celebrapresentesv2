@@ -14,32 +14,43 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      // Load store settings
-      const settings = await fetchStoreSettings();
-      if (settings) {
-        setStoreSettings(settings);
+      setLoading(true);
+      try {
+        // Load store settings
+        const settings = await fetchStoreSettings();
+        if (settings) {
+          console.log("Header: Loaded store settings:", settings);
+          setStoreSettings(settings);
+          
+          // Update CSS variables with store colors
+          if (settings.primary_color) {
+            document.documentElement.style.setProperty('--primary', settings.primary_color);
+          }
+          if (settings.primary_text_color) {
+            document.documentElement.style.setProperty('--primary-foreground', settings.primary_text_color);
+          }
+          if (settings.secondary_color) {
+            document.documentElement.style.setProperty('--secondary', settings.secondary_color);
+          }
+          if (settings.secondary_text_color) {
+            document.documentElement.style.setProperty('--secondary-foreground', settings.secondary_text_color);
+          }
+        } else {
+          console.error("Header: Failed to load store settings");
+        }
         
-        // Update CSS variables with store colors
-        if (settings.primary_color) {
-          document.documentElement.style.setProperty('--primary', settings.primary_color);
-        }
-        if (settings.primary_text_color) {
-          document.documentElement.style.setProperty('--primary-foreground', settings.primary_text_color);
-        }
-        if (settings.secondary_color) {
-          document.documentElement.style.setProperty('--secondary', settings.secondary_color);
-        }
-        if (settings.secondary_text_color) {
-          document.documentElement.style.setProperty('--secondary-foreground', settings.secondary_text_color);
-        }
+        // Load categories
+        const categoryData = await fetchCategories();
+        setCategories(categoryData);
+      } catch (error) {
+        console.error("Header: Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      // Load categories
-      const categoryData = await fetchCategories();
-      setCategories(categoryData);
     };
 
     loadData();
@@ -55,6 +66,14 @@ const Header = () => {
                 src={storeSettings.logo_url} 
                 alt={storeSettings.name} 
                 className="h-10 object-contain"
+                onError={(e) => {
+                  console.error("Failed to load logo:", storeSettings.logo_url);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const nameElement = e.currentTarget.parentElement;
+                  if (nameElement) {
+                    nameElement.innerHTML = `<span class="font-playfair text-2xl font-bold">${storeSettings.name || 'Flor & Cia'}</span>`;
+                  }
+                }}
               />
             ) : (
               <span className="font-playfair text-2xl font-bold">
