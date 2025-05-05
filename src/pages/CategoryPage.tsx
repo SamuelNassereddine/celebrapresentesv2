@@ -6,6 +6,7 @@ import ProductCard from '@/components/Products/ProductCard';
 import { fetchProductsByCategory } from '@/services/api';
 import { Database } from '@/integrations/supabase/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
 
 type Product = Database['public']['Tables']['products']['Row'] & {
   images: Database['public']['Tables']['product_images']['Row'][];
@@ -24,7 +25,7 @@ const CategoryPage = () => {
       setLoading(true);
       try {
         // Fetch category info
-        const { data: categories } = await window.supabase
+        const { data: categories } = await supabase
           .from('categories')
           .select('*')
           .eq('slug', slug)
@@ -69,7 +70,13 @@ const CategoryPage = () => {
         ) : products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                id={product.id} 
+                title={product.title} 
+                price={product.price} 
+                imageUrl={product.images?.[0]?.url || '/placeholder.svg'} 
+              />
             ))}
           </div>
         ) : (
