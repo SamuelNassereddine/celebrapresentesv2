@@ -1,4 +1,3 @@
-
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -307,26 +306,6 @@ const DeliveryStep = () => {
     setLoading(true);
     
     // Validate form
-    if (!formData.recipientSelf && !formData.recipientName.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Campo obrigatório",
-        description: "Por favor, insira o nome do destinatário.",
-      });
-      setLoading(false);
-      return;
-    }
-    
-    if (!formData.recipientSelf && !formData.recipientPhone) {
-      toast({
-        variant: "destructive",
-        title: "Campo obrigatório",
-        description: "Por favor, insira o telefone do destinatário.",
-      });
-      setLoading(false);
-      return;
-    }
-    
     if (!formData.recipientSelf && !formData.presentedName.trim()) {
       toast({
         variant: "destructive",
@@ -348,16 +327,6 @@ const DeliveryStep = () => {
     }
     
     const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
-    if (!formData.recipientSelf && formData.recipientPhone && !phoneRegex.test(formData.recipientPhone)) {
-      toast({
-        variant: "destructive",
-        title: "Telefone inválido",
-        description: "Por favor, insira um telefone válido no formato (99) 99999-9999.",
-      });
-      setLoading(false);
-      return;
-    }
-    
     if (!formData.recipientSelf && formData.presentedPhone && !phoneRegex.test(formData.presentedPhone)) {
       toast({
         variant: "destructive",
@@ -501,38 +470,6 @@ const DeliveryStep = () => {
                     {!formData.recipientSelf && (
                       <div className="mt-4 space-y-4">
                         <div>
-                          <label htmlFor="recipientName" className="block text-gray-700 mb-2">
-                            Nome do Destinatário
-                          </label>
-                          <input
-                            id="recipientName"
-                            name="recipientName"
-                            type="text"
-                            value={formData.recipientName}
-                            onChange={handleChange}
-                            placeholder="Nome completo de quem vai receber"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required={!formData.recipientSelf}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="recipientPhone" className="block text-gray-700 mb-2">
-                            Telefone do Destinatário
-                          </label>
-                          <input
-                            id="recipientPhone"
-                            name="recipientPhone"
-                            type="tel"
-                            value={formData.recipientPhone}
-                            onChange={handleChange}
-                            placeholder="(00) 00000-0000"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required={!formData.recipientSelf}
-                          />
-                        </div>
-                        
-                        <div>
                           <label htmlFor="presentedName" className="block text-gray-700 mb-2">
                             Nome do Presenteado
                           </label>
@@ -542,7 +479,7 @@ const DeliveryStep = () => {
                             type="text"
                             value={formData.presentedName}
                             onChange={handleChange}
-                            placeholder="Nome de quem está sendo presenteado"
+                            placeholder="Nome completo de quem está sendo presenteado"
                             className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required={!formData.recipientSelf}
                           />
@@ -569,7 +506,7 @@ const DeliveryStep = () => {
                   
                   {/* Address Information */}
                   <div>
-                    <h3 className="text-lg font-medium mb-4">Endereço do Destinatário</h3>
+                    <h3 className="text-lg font-medium mb-4">Endereço de Entrega</h3>
                     <div className="space-y-4">
                       <div>
                         <label htmlFor="cep" className="block text-gray-700 mb-2">
