@@ -27,8 +27,9 @@
 - [x] Adicionar seção de produtos adicionais no carrinho
 - [x] Implementar seção de itens especiais no carrinho
 - [x] Remover opção de pagamento via PIX
-- [ ] Integrar pedidos com Supabase
+- [x] Integrar pedidos com Supabase
 - [x] Implementar auto-preenchimento de endereço por CEP
+- [x] Prefixar IDs de itens especiais com "special-" para identificação
 
 ## Front-end (Admin):
 - [x] Criar dashboard administrativo
@@ -39,6 +40,7 @@
 - [x] Desenvolver página de configurações da loja
 - [x] Implementar gerenciamento de horários de entrega
 - [x] Implementar gerenciamento de itens especiais
+- [x] Visualização de itens especiais em detalhes do pedido
 
 ## Integrações:
 - [x] Configurar busca por CEP com ViaCEP
@@ -64,28 +66,19 @@
   - [x] delivery_time_slots
   - [x] special_items
 - [x] Configurar políticas de Row Level Security (RLS)
+- [x] Modificar estrutura da tabela order_items para permitir product_id nulo (itens especiais)
 
 ## Próximos Passos:
 - [ ] Implementar sistema de upload de imagens
-- [ ] Criar detalhes de pedido na página de pedidos admin
-- [ ] Adicionar formulário de edição de produto
-- [ ] Implementar página de detalhes de pedido
+- [ ] Criar filtros avançados na página de pedidos admin
 - [ ] Adicionar estatísticas no dashboard
 - [ ] Implementar exportação de relatórios
+- [ ] Refatorar OrderDetail.tsx em componentes menores
+- [ ] Refatorar api.ts em módulos separados por funcionalidade
 
-## Melhorias recentes:
-- [x] Adicionar seção de produtos adicionais no carrinho
-- [x] Adicionar seção de itens especiais no carrinho
-- [x] Remover opção de pagamento via PIX
-- [ ] Integrar pedidos com Supabase
-- [x] Auto-preenchimento de endereço por CEP
-- [x] Conectar horários de entrega ao gerenciamento admin
-- [x] Corrigir políticas de segurança para permitir criação e edição de produtos/categorias
-
-## Tarefas de Integração de Pedidos:
-- [ ] Adicionar campo order_number à interface OrderData em src/services/api.ts
-- [ ] Atualizar função prepareOrderData no PaymentStep.tsx para incluir o orderNumber
-- [ ] Melhorar busca por telefone na página admin/Orders
-- [ ] Validar formato de telefone em todas as etapas do checkout
-- [ ] Garantir que todos os dados do checkout sejam salvos corretamente no banco
-- [ ] Implementar visualização completa do pedido em /admin/orders/id
+## Melhorias técnicas:
+- [ ] Otimizar carregamento de imagens
+- [ ] Implementar lazy loading para componentes pesados
+- [ ] Adicionar testes unitários para componentes críticos
+- [ ] Melhorar feedback visual durante carregamento de dados
+- [ ] Implementar cache para consultas frequentes
