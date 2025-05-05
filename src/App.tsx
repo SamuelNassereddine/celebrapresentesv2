@@ -1,87 +1,101 @@
 
-import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CartProvider } from '@/context/CartContext';
-import { AuthProvider } from '@/context/AuthContext';
-import { Toaster } from '@/components/ui/sonner';
+import Index from './pages/Index';
+import Home from './pages/Home';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import CategoryPage from './pages/CategoryPage';
+import Cart from './pages/Cart';
+import NotFound from './pages/NotFound';
+import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from './components/ui/toaster';
+import { Toaster as SonnerToaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import IdentificationStep from './pages/checkout/IdentificationStep';
+import DeliveryStep from './pages/checkout/DeliveryStep';
+import PersonalizationStep from './pages/checkout/PersonalizationStep';
+import PaymentStep from './pages/checkout/PaymentStep';
+import Confirmation from './pages/checkout/Confirmation';
+import { ThemeProvider } from './components/Theme/ThemeProvider';
 
-// Import pages
-const Home = lazy(() => import('@/pages/Home'));
-const Products = lazy(() => import('@/pages/Products'));
-const CategoryPage = lazy(() => import('@/pages/CategoryPage'));
-const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
-const Cart = lazy(() => import('@/pages/Cart'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
+// Admin routes
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminLogin from './pages/admin/Login';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminOrders from './pages/admin/Orders';
+import AdminOrderDetail from './pages/admin/Orders/OrderDetail';
+import AdminProducts from './pages/admin/Products';
+import AdminProductForm from './pages/admin/Products/ProductForm';
+import AdminCategories from './pages/admin/Categories';
+import AdminCategoryForm from './pages/admin/Categories/CategoryForm';
+import AdminSpecialItems from './pages/admin/SpecialItems';
+import AdminSpecialItemForm from './pages/admin/SpecialItems/SpecialItemForm';
+import AdminCalendar from './pages/admin/Calendar';
+import AdminSettings from './pages/admin/Settings';
+import AdminUsers from './pages/admin/Users';
 
-// Checkout steps
-const IdentificationStep = lazy(() => import('@/pages/checkout/IdentificationStep'));
-const DeliveryStep = lazy(() => import('@/pages/checkout/DeliveryStep'));
-const PersonalizationStep = lazy(() => import('@/pages/checkout/PersonalizationStep'));
-const PaymentStep = lazy(() => import('@/pages/checkout/PaymentStep'));
-const Confirmation = lazy(() => import('@/pages/checkout/Confirmation'));
-
-// Admin pages
-const AdminLogin = lazy(() => import('@/pages/admin/Login'));
-const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'));
-const AdminProducts = lazy(() => import('@/pages/admin/Products'));
-const AdminProductForm = lazy(() => import('@/pages/admin/Products/ProductForm'));
-const AdminCategories = lazy(() => import('@/pages/admin/Categories'));
-const AdminCategoryForm = lazy(() => import('@/pages/admin/Categories/CategoryForm'));
-const AdminSpecialItems = lazy(() => import('@/pages/admin/SpecialItems'));
-const AdminSpecialItemForm = lazy(() => import('@/pages/admin/SpecialItems/SpecialItemForm'));
-const AdminOrders = lazy(() => import('@/pages/admin/Orders'));
-const AdminOrderDetail = lazy(() => import('@/pages/admin/Orders/OrderDetail'));
-const AdminCalendar = lazy(() => import('@/pages/admin/Calendar'));
-const AdminSettings = lazy(() => import('@/pages/admin/Settings'));
-const AdminUsers = lazy(() => import('@/pages/admin/Users'));
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/category/:slug" element={<CategoryPage />} />
-              <Route path="/cart" element={<Cart />} />
-              
-              {/* Checkout Routes */}
-              <Route path="/checkout/1" element={<IdentificationStep />} />
-              <Route path="/checkout/2" element={<DeliveryStep />} />
-              <Route path="/checkout/3" element={<PersonalizationStep />} />
-              <Route path="/checkout/4" element={<PaymentStep />} />
-              <Route path="/checkout/confirmation" element={<Confirmation />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/products" element={<AdminProducts />} />
-              <Route path="/admin/products/new" element={<AdminProductForm />} />
-              <Route path="/admin/products/:id" element={<AdminProductForm />} />
-              <Route path="/admin/categories" element={<AdminCategories />} />
-              <Route path="/admin/categories/new" element={<AdminCategoryForm />} />
-              <Route path="/admin/categories/:id" element={<AdminCategoryForm />} />
-              <Route path="/admin/special-items" element={<AdminSpecialItems />} />
-              <Route path="/admin/special-items/new" element={<AdminSpecialItemForm />} />
-              <Route path="/admin/special-items/:id" element={<AdminSpecialItemForm />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
-              <Route path="/admin/calendar" element={<AdminCalendar />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-          <Toaster position="top-right" richColors />
-        </CartProvider>
-      </AuthProvider>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Index />}>
+                  <Route index element={<Home />} />
+                  <Route path="products" element={<Products />} />
+                  <Route path="product/:slug" element={<ProductDetail />} />
+                  <Route path="category/:slug" element={<CategoryPage />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="checkout/1" element={<IdentificationStep />} />
+                  <Route path="checkout/2" element={<DeliveryStep />} />
+                  <Route path="checkout/3" element={<PersonalizationStep />} />
+                  <Route path="checkout/4" element={<PaymentStep />} />
+                  <Route path="checkout/confirmation" element={<Confirmation />} />
+                </Route>
+                
+                {/* Admin routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="orders/:id" element={<AdminOrderDetail />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="products/new" element={<AdminProductForm />} />
+                  <Route path="products/:id" element={<AdminProductForm />} />
+                  <Route path="categories" element={<AdminCategories />} />
+                  <Route path="categories/new" element={<AdminCategoryForm />} />
+                  <Route path="categories/:id" element={<AdminCategoryForm />} />
+                  <Route path="special-items" element={<AdminSpecialItems />} />
+                  <Route path="special-items/new" element={<AdminSpecialItemForm />} />
+                  <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
+                  <Route path="calendar" element={<AdminCalendar />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="users" element={<AdminUsers />} />
+                </Route>
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+            
+            <Toaster />
+            <SonnerToaster position="top-right" />
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

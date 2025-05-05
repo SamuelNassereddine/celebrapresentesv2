@@ -104,7 +104,18 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'slide-in': 'slide-in 0.4s ease-out'
-			}
+			},
+			spacing: {
+				'4.5': '1.125rem',
+				'13': '3.25rem',
+				'15': '3.75rem',
+				'128': '32rem',
+				'144': '36rem',
+			},
+			maxWidth: {
+				'8xl': '90rem',
+				'9xl': '100rem',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

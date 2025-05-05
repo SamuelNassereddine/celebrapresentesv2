@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -8,6 +7,7 @@ import { fetchSpecialItems } from '@/services/api';
 import SpecialItemCard from '@/components/SpecialItems/SpecialItemCard';
 import { Database } from '@/integrations/supabase/types';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
@@ -114,12 +114,14 @@ const Cart = () => {
               </div>
               <h2 className="text-xl font-medium mb-2">Seu carrinho está vazio</h2>
               <p className="text-gray-600 mb-8">Adicione produtos para continuar comprando</p>
-              <Link 
-                to="/products"
+              <Button 
+                asChild
                 className="btn-primary"
               >
-                Ver produtos
-              </Link>
+                <Link to="/products">
+                  Ver produtos
+                </Link>
+              </Button>
             </div>
             
             {/* Special Items - Always show even with empty cart */}
@@ -207,12 +209,13 @@ const Cart = () => {
                     </span>
                   </div>
                 </div>
-                <button 
+                <Button 
                   onClick={handleCheckout}
-                  className="bg-primary text-white w-full py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
+                  variant="default"
+                  className="w-full"
                 >
                   Finalizar Compra
-                </button>
+                </Button>
               </Card>
             </div>
           </div>

@@ -1,5 +1,7 @@
 
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface CheckoutStepsProps {
   currentStep: number;
@@ -16,12 +18,16 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center">
-        <Link to="/cart" className="text-gray-600 hover:text-gray-800 flex items-center space-x-1">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          <span>Voltar para o carrinho</span>
-        </Link>
+        <Button 
+          variant="ghost"
+          asChild
+          className="text-gray-600 hover:text-gray-800 p-0"
+        >
+          <Link to="/cart" className="flex items-center space-x-1">
+            <ArrowLeft className="h-5 w-5" />
+            <span>Voltar para o carrinho</span>
+          </Link>
+        </Button>
         <h1 className="text-2xl md:text-3xl font-playfair font-semibold">Checkout</h1>
       </div>
       
@@ -31,7 +37,7 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
             <div 
               className={`w-12 h-12 rounded-full flex items-center justify-center 
                 ${step.number === currentStep 
-                  ? 'bg-primary text-gray-800 font-medium' 
+                  ? 'bg-primary text-primary-foreground font-medium' 
                   : step.number < currentStep 
                     ? 'bg-gray-200 text-gray-600' 
                     : 'bg-gray-200 text-gray-600'
