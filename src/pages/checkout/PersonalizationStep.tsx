@@ -20,8 +20,11 @@ const PersonalizationStep = () => {
   
   useEffect(() => {
     const savedOrderId = localStorage.getItem('currentOrderId');
+    console.log('PersonalizationStep - Initial orderId from localStorage:', savedOrderId);
+    
     if (!savedOrderId) {
       // Se não temos um ID de pedido, voltar para a primeira etapa
+      console.log('PersonalizationStep - No orderId found, redirecting to step 1');
       sonnerToast.error('Por favor, complete as etapas anteriores primeiro');
       navigate('/checkout/1');
       return;
@@ -31,13 +34,19 @@ const PersonalizationStep = () => {
     
     // Carregar mensagem existente do pedido
     const loadOrderData = async () => {
+      console.log('PersonalizationStep - Loading order data for ID:', savedOrderId);
       const { data, error } = await supabase
         .from('orders')
         .select('personalization_text')
         .eq('id', savedOrderId)
         .single();
         
+      if (error) {
+        console.error('PersonalizationStep - Error loading order data:', error);
+      }
+        
       if (data && !error) {
+        console.log('PersonalizationStep - Loaded data:', data);
         setMessage(data.personalization_text || '');
       }
       
@@ -52,6 +61,7 @@ const PersonalizationStep = () => {
       try {
         const { message: savedMessage } = JSON.parse(savedData);
         if (savedMessage) {
+          console.log('PersonalizationStep - Loading message from localStorage:', savedMessage);
           setMessage(savedMessage);
         }
       } catch (err) {
@@ -62,10 +72,14 @@ const PersonalizationStep = () => {
   
   const handleSubmit = async () => {
     if (!orderId) {
+      console.error('PersonalizationStep - Submit attempted without orderId');
       sonnerToast.error('Erro: ID do pedido não encontrado');
       navigate('/checkout/1');
       return;
     }
+    
+    console.log('PersonalizationStep - Submitting with orderId:', orderId);
+    console.log('PersonalizationStep - Message:', message);
     
     setLoading(true);
     
@@ -79,7 +93,7 @@ const PersonalizationStep = () => {
         .eq('id', orderId);
         
       if (error) {
-        console.error('Erro ao salvar mensagem de personalização:', error);
+        console.error('PersonalizationStep - Error saving message:', error);
         toast({
           variant: "destructive",
           title: "Erro ao salvar a mensagem",
@@ -89,13 +103,15 @@ const PersonalizationStep = () => {
         return;
       }
       
+      console.log('PersonalizationStep - Message saved successfully');
+      
       // Save to localStorage
       localStorage.setItem('checkoutPersonalization', JSON.stringify({ message }));
       
       // Navigate to next step
       navigate('/checkout/4');
     } catch (error) {
-      console.error('Erro não tratado:', error);
+      console.error('PersonalizationStep - Unhandled error:', error);
       toast({
         variant: "destructive",
         title: "Erro inesperado",

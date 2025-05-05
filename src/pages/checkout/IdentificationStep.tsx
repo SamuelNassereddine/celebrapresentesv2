@@ -21,19 +21,28 @@ const IdentificationStep = () => {
   
   // Verificar se já existe um orderId no localStorage
   useEffect(() => {
+    console.log('IdentificationStep - Component initialized');
     const savedOrderId = localStorage.getItem('currentOrderId');
+    console.log('IdentificationStep - orderId from localStorage:', savedOrderId);
+    
     if (savedOrderId) {
       setOrderId(savedOrderId);
       
       // Carregar dados do pedido se já existir
       const loadExistingData = async () => {
+        console.log('IdentificationStep - Loading existing order data');
         const { data, error } = await supabase
           .from('orders')
           .select('customer_name, customer_phone, customer_email')
           .eq('id', savedOrderId)
           .single();
         
+        if (error) {
+          console.error('IdentificationStep - Error loading order data:', error);
+        }
+        
         if (data && !error) {
+          console.log('IdentificationStep - Loaded data:', data);
           setFormData({
             name: data.customer_name || '',
             phone: data.customer_phone || '',
@@ -43,6 +52,8 @@ const IdentificationStep = () => {
       };
       
       loadExistingData();
+    } else {
+      console.log('IdentificationStep - No existing order found');
     }
   }, []);
   
@@ -72,8 +83,10 @@ const IdentificationStep = () => {
   
   const createOrUpdateOrder = async (): Promise<string | null> => {
     try {
+      console.log('IdentificationStep - Creating or updating order');
       // Se já tiver um ID de pedido, atualiza o pedido existente
       if (orderId) {
+        console.log('IdentificationStep - Updating existing order:', orderId);
         const { error } = await supabase
           .from('orders')
           .update({
@@ -84,7 +97,7 @@ const IdentificationStep = () => {
           .eq('id', orderId);
           
         if (error) {
-          console.error('Erro ao atualizar pedido:', error);
+          console.error('IdentificationStep - Error updating order:', error);
           toast({
             variant: "destructive",
             title: "Erro ao atualizar seus dados",
@@ -93,12 +106,17 @@ const IdentificationStep = () => {
           return null;
         }
         
+        console.log('IdentificationStep - Order updated successfully');
         return orderId;
       } else {
         // Caso contrário, cria um novo pedido
+        console.log('IdentificationStep - Creating new order');
         const newOrderId = uuidv4();
         const orderNumber = new Date().getFullYear().toString() + 
                            Math.floor(Math.random() * 900 + 100).toString();
+        
+        console.log('IdentificationStep - New order ID:', newOrderId);
+        console.log('IdentificationStep - Order number:', orderNumber);
         
         const { error } = await supabase
           .from('orders')
@@ -113,7 +131,7 @@ const IdentificationStep = () => {
           });
           
         if (error) {
-          console.error('Erro ao criar pedido:', error);
+          console.error('IdentificationStep - Error creating order:', error);
           toast({
             variant: "destructive",
             title: "Erro ao salvar seus dados",
@@ -122,10 +140,11 @@ const IdentificationStep = () => {
           return null;
         }
         
+        console.log('IdentificationStep - Order created successfully');
         return newOrderId;
       }
     } catch (error) {
-      console.error('Erro não tratado:', error);
+      console.error('IdentificationStep - Unhandled error:', error);
       toast({
         variant: "destructive",
         title: "Erro inesperado",
@@ -137,6 +156,7 @@ const IdentificationStep = () => {
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log('IdentificationStep - Form submitted');
     setIsSubmitting(true);
     
     // Validar form
@@ -176,10 +196,12 @@ const IdentificationStep = () => {
     
     if (newOrderId) {
       // Armazenar o ID do pedido para uso nas próximas etapas
+      console.log('IdentificationStep - Saving order ID to localStorage:', newOrderId);
       localStorage.setItem('currentOrderId', newOrderId);
       setOrderId(newOrderId);
       
       // Armazenar dados de identificação para uso nas próximas etapas
+      console.log('IdentificationStep - Saving identification data to localStorage');
       localStorage.setItem('checkoutIdentification', JSON.stringify(formData));
       
       // Notificar sucesso

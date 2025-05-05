@@ -25,9 +25,12 @@ const PaymentStep = () => {
   const [orderData, setOrderData] = useState<any>(null);
   
   useEffect(() => {
+    console.log('PaymentStep - Initializing component');
     const savedOrderId = localStorage.getItem('currentOrderId');
+    console.log('PaymentStep - orderId from localStorage:', savedOrderId);
+    
     if (!savedOrderId) {
-      // Se não temos um ID de pedido, voltar para a primeira etapa
+      console.error('PaymentStep - No order ID found in localStorage');
       toast.error('Por favor, complete as etapas anteriores primeiro');
       navigate('/checkout/1');
       return;
@@ -38,6 +41,7 @@ const PaymentStep = () => {
     // Carregar dados do pedido e configurações da loja
     const loadData = async () => {
       try {
+        console.log('PaymentStep - Loading order data for ID:', savedOrderId);
         // Carregar pedido
         const { data, error } = await supabase
           .from('orders')
@@ -45,12 +49,18 @@ const PaymentStep = () => {
           .eq('id', savedOrderId)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('PaymentStep - Error loading order:', error);
+          throw error;
+        }
+        
+        console.log('PaymentStep - Order data loaded:', data);
         setOrderData(data);
         setOrderNumber(data.order_number || '');
         
         // Carregar configurações da loja
         const settings = await fetchStoreSettings();
+        console.log('PaymentStep - Store settings loaded:', settings);
         if (settings && settings.whatsapp_number) {
           setStoreSettings(prevSettings => ({
             ...prevSettings,
@@ -59,13 +69,19 @@ const PaymentStep = () => {
         }
         
         // Atualizar o preço total no pedido
-        await supabase
+        const { error: updateError } = await supabase
           .from('orders')
           .update({ total_price: totalPrice })
           .eq('id', savedOrderId);
           
+        if (updateError) {
+          console.error('PaymentStep - Error updating total price:', updateError);
+        } else {
+          console.log('PaymentStep - Total price updated successfully:', totalPrice);
+        }
+          
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('PaymentStep - Error loading data:', error);
         toast.error('Erro ao carregar dados do pedido');
       } finally {
         setInitialLoading(false);
@@ -80,12 +96,21 @@ const PaymentStep = () => {
     const identification = localStorage.getItem('checkoutIdentification');
     const delivery = localStorage.getItem('checkoutDelivery');
     
+    console.log('PaymentStep - Checking checkout data:');
+    console.log('- identification:', !!identification);
+    console.log('- delivery:', !!delivery);
+    console.log('- orderId:', !!orderId);
+    
     return !!identification && !!delivery && !!orderId;
   };
   
   // Redirecionar se não tiver dados completos
   useEffect(() => {
-    if (!checkoutDataExists()) {
+    const isDataComplete = checkoutDataExists();
+    console.log('PaymentStep - Is checkout data complete?', isDataComplete);
+    
+    if (!isDataComplete) {
+      console.log('PaymentStep - Incomplete checkout data, redirecting to step 1');
       toast.error('É necessário preencher os dados de identificação e entrega');
       navigate('/checkout/1');
     }
@@ -132,14 +157,22 @@ const PaymentStep = () => {
   };
   
   const addOrderItems = async () => {
-    if (!orderId) return false;
+    if (!orderId) {
+      console.error('PaymentStep - Cannot add items: No order ID');
+      return false;
+    }
     
     try {
+      console.log('PaymentStep - Adding items to order:', items.length, 'items');
       // Remover itens existentes (se houver)
-      await supabase
+      const { error: deleteError } = await supabase
         .from('order_items')
         .delete()
         .eq('order_id', orderId);
+        
+      if (deleteError) {
+        console.error('PaymentStep - Error deleting existing items:', deleteError);
+      }
       
       // Adicionar os itens do carrinho ao pedido
       const orderItems = items.map(item => ({
@@ -150,47 +183,58 @@ const PaymentStep = () => {
         product_id: item.id.startsWith('special-') ? null : item.id // Apenas produtos regulares têm product_id
       }));
       
+      console.log('PaymentStep - Items to add:', orderItems);
+      
       if (orderItems.length > 0) {
         const { error } = await supabase
           .from('order_items')
           .insert(orderItems);
           
         if (error) {
-          console.error('Erro ao adicionar itens ao pedido:', error);
+          console.error('PaymentStep - Error adding items to order:', error);
           return false;
         }
+        
+        console.log('PaymentStep - Items added successfully');
       }
       
       return true;
     } catch (error) {
-      console.error('Erro não tratado:', error);
+      console.error('PaymentStep - Unhandled error adding items:', error);
       return false;
     }
   };
   
   const handleWhatsAppCheckout = async () => {
-    if (isSubmitting || !orderId) return;
+    if (isSubmitting || !orderId) {
+      console.log('PaymentStep - Submit prevented: isSubmitting=', isSubmitting, 'orderId=', orderId);
+      return;
+    }
     
     try {
       setIsSubmitting(true);
       setError(null);
+      console.log('PaymentStep - Starting WhatsApp checkout process');
       
       // Atualizar o preço final do pedido e adicionar os itens
+      console.log('PaymentStep - Updating final price:', totalPrice);
       const { error: updateError } = await supabase
         .from('orders')
         .update({ total_price: totalPrice })
         .eq('id', orderId);
         
       if (updateError) {
-        console.error('Erro ao atualizar preço final:', updateError);
+        console.error('PaymentStep - Error updating final price:', updateError);
         setError('Erro ao finalizar o pedido. Tente novamente.');
         setIsSubmitting(false);
         return;
       }
       
       // Adicionar os itens do pedido
+      console.log('PaymentStep - Adding order items');
       const itemsAdded = await addOrderItems();
       if (!itemsAdded) {
+        console.error('PaymentStep - Failed to add items');
         setError('Erro ao adicionar itens ao pedido. Tente novamente.');
         setIsSubmitting(false);
         return;
@@ -198,8 +242,10 @@ const PaymentStep = () => {
       
       // Preparar a mensagem para o WhatsApp
       const message = formatWhatsAppMessage();
+      console.log('PaymentStep - WhatsApp message prepared');
       
       // Clear the cart and checkout data
+      console.log('PaymentStep - Clearing cart and checkout data');
       clearCart();
       
       // Manter o ID do pedido para uso na tela de confirmação
@@ -210,14 +256,16 @@ const PaymentStep = () => {
       
       // Open WhatsApp in a new tab
       const whatsappUrl = `https://wa.me/${storeSettings.whatsappNumber}?text=${message}`;
+      console.log('PaymentStep - Opening WhatsApp URL:', whatsappUrl);
       window.open(whatsappUrl, '_blank');
       
       // Navigate to confirmation page
+      console.log('PaymentStep - Navigating to confirmation page');
       navigate('/checkout/confirmation');
     } catch (error) {
+      console.error('PaymentStep - Error during checkout:', error);
       setError('Erro ao processar o pedido. Tente novamente ou continue via WhatsApp.');
       toast.error('Erro ao finalizar pedido. Tente novamente.');
-      console.error('Error during checkout:', error);
     } finally {
       setIsSubmitting(false);
     }
