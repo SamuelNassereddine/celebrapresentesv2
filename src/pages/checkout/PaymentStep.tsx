@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -8,7 +7,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchStoreSettings } from '@/services/api';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -38,6 +36,20 @@ const PaymentStep = () => {
     
     setOrderId(savedOrderId);
     
+    // Verify that step 3 was completed
+    const step3Complete = localStorage.getItem('checkoutStep3Complete');
+    console.log('PaymentStep - Step 3 completed:', !!step3Complete);
+    
+    // Check for all required checkout data
+    const identificationData = localStorage.getItem('checkoutIdentification');
+    const deliveryData = localStorage.getItem('checkoutDelivery');
+    const personalizationData = localStorage.getItem('checkoutPersonalization');
+    
+    console.log('PaymentStep - Checking checkout data:');
+    console.log('- identificationData:', !!identificationData);
+    console.log('- deliveryData:', !!deliveryData);
+    console.log('- personalizationData:', !!personalizationData);
+    
     // Carregar dados do pedido e configurações da loja
     const loadData = async () => {
       try {
@@ -55,6 +67,14 @@ const PaymentStep = () => {
         }
         
         console.log('PaymentStep - Order data loaded:', data);
+        
+        // Check if the order has the required identification and delivery data
+        if (!data.customer_name || !data.customer_phone || 
+            !data.address_street || !data.address_city) {
+          console.error('PaymentStep - Order missing required fields');
+          throw new Error('Dados de identificação ou entrega incompletos');
+        }
+        
         setOrderData(data);
         setOrderNumber(data.order_number || '');
         
@@ -80,9 +100,15 @@ const PaymentStep = () => {
           console.log('PaymentStep - Total price updated successfully:', totalPrice);
         }
           
-      } catch (error) {
+      } catch (error: any) {
         console.error('PaymentStep - Error loading data:', error);
-        toast.error('Erro ao carregar dados do pedido');
+        setError(error.message || 'Erro ao carregar dados do pedido');
+        toast.error('É necessário preencher os dados de identificação e entrega');
+        
+        // Only redirect if the error is due to missing data
+        if (error.message === 'Dados de identificação ou entrega incompletos') {
+          navigate('/checkout/1');
+        }
       } finally {
         setInitialLoading(false);
       }
@@ -91,30 +117,34 @@ const PaymentStep = () => {
     loadData();
   }, [navigate, totalPrice]);
   
-  // Verificar se há dados de checkout
+  // Simplify the checkout data check to focus on the database data
   const checkoutDataExists = () => {
-    const identification = localStorage.getItem('checkoutIdentification');
-    const delivery = localStorage.getItem('checkoutDelivery');
+    if (!orderData) return false;
     
-    console.log('PaymentStep - Checking checkout data:');
-    console.log('- identification:', !!identification);
-    console.log('- delivery:', !!delivery);
-    console.log('- orderId:', !!orderId);
-    
-    return !!identification && !!delivery && !!orderId;
+    // Check if the order has the required fields
+    return !!(
+      orderData.customer_name && 
+      orderData.customer_phone && 
+      orderData.address_street &&
+      orderData.address_city &&
+      orderData.address_state &&
+      orderData.delivery_date
+    );
   };
   
   // Redirecionar se não tiver dados completos
   useEffect(() => {
-    const isDataComplete = checkoutDataExists();
-    console.log('PaymentStep - Is checkout data complete?', isDataComplete);
-    
-    if (!isDataComplete) {
-      console.log('PaymentStep - Incomplete checkout data, redirecting to step 1');
-      toast.error('É necessário preencher os dados de identificação e entrega');
-      navigate('/checkout/1');
+    if (!initialLoading) { // Only check after initial loading is complete
+      const isDataComplete = checkoutDataExists();
+      console.log('PaymentStep - Is checkout data complete?', isDataComplete);
+      
+      if (!isDataComplete) {
+        console.log('PaymentStep - Incomplete checkout data, redirecting to step 1');
+        toast.error('É necessário preencher os dados de identificação e entrega');
+        navigate('/checkout/1');
+      }
     }
-  }, [navigate]);
+  }, [initialLoading, navigate, orderData]);
   
   const formatWhatsAppMessage = () => {
     if (!orderData) return '';

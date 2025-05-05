@@ -32,6 +32,21 @@ const PersonalizationStep = () => {
     
     setOrderId(savedOrderId);
     
+    // Check if we have all needed checkout data
+    const identificationData = localStorage.getItem('checkoutIdentification');
+    const deliveryData = localStorage.getItem('checkoutDelivery');
+    
+    console.log('PersonalizationStep - Checking previous steps data:');
+    console.log('- identificationData:', !!identificationData);
+    console.log('- deliveryData:', !!deliveryData);
+    
+    if (!identificationData || !deliveryData) {
+      console.log('PersonalizationStep - Missing previous steps data, redirecting');
+      sonnerToast.error('Por favor, complete as etapas anteriores primeiro');
+      navigate('/checkout/1');
+      return;
+    }
+    
     // Carregar mensagem existente do pedido
     const loadOrderData = async () => {
       console.log('PersonalizationStep - Loading order data for ID:', savedOrderId);
@@ -105,8 +120,17 @@ const PersonalizationStep = () => {
       
       console.log('PersonalizationStep - Message saved successfully');
       
-      // Save to localStorage
-      localStorage.setItem('checkoutPersonalization', JSON.stringify({ message }));
+      // Save to localStorage with more detailed information
+      localStorage.setItem('checkoutPersonalization', JSON.stringify({ 
+        message,
+        savedAt: new Date().toISOString() 
+      }));
+      
+      // Add a flag to indicate completion of this step
+      localStorage.setItem('checkoutStep3Complete', 'true');
+      
+      console.log('PersonalizationStep - Data saved to localStorage');
+      console.log('PersonalizationStep - Navigating to step 4');
       
       // Navigate to next step
       navigate('/checkout/4');
@@ -140,52 +164,58 @@ const PersonalizationStep = () => {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <CheckoutSteps currentStep={3} />
         
-        <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-          <h2 className="text-2xl font-playfair font-semibold mb-6">Personalização</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="message" className="block text-gray-700 mb-2 flex items-center">
-                <span className="text-lg mr-2">📝</span> Mensagem para o cartão (opcional)
-              </label>
-              <Textarea 
-                id="message"
-                placeholder="Escreva uma mensagem especial que será incluída no cartão..."
-                className="min-h-[120px]"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <p className="text-gray-500 text-sm mt-2">
-                Limite máximo de 200 caracteres.
-                {message && <span className="font-medium ml-1">{message.length}/200</span>}
-              </p>
+        {initialLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
+            <h2 className="text-2xl font-playfair font-semibold mb-6">Personalização</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="message" className="block text-gray-700 mb-2 flex items-center">
+                  <span className="text-lg mr-2">📝</span> Mensagem para o cartão (opcional)
+                </label>
+                <Textarea 
+                  id="message"
+                  placeholder="Escreva uma mensagem especial que será incluída no cartão..."
+                  className="min-h-[120px]"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+                <p className="text-gray-500 text-sm mt-2">
+                  Limite máximo de 200 caracteres.
+                  {message && <span className="font-medium ml-1">{message.length}/200</span>}
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-8 flex justify-between">
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/checkout/2')}
+                disabled={loading}
+              >
+                Voltar
+              </Button>
+              
+              <Button 
+                onClick={handleSubmit}
+                disabled={loading || message.length > 200}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Continuar'
+                )}
+              </Button>
             </div>
           </div>
-          
-          <div className="mt-8 flex justify-between">
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/checkout/2')}
-              disabled={loading}
-            >
-              Voltar
-            </Button>
-            
-            <Button 
-              onClick={handleSubmit}
-              disabled={loading || message.length > 200}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                'Continuar'
-              )}
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </Layout>
   );

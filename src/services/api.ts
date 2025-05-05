@@ -190,6 +190,7 @@ export const deleteProductImageFromStorage = async (url: string): Promise<boolea
 
 // New functions for special items
 export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
+  console.log('fetchSpecialItems - Starting fetch');
   const { data, error } = await supabase
     .from('special_items')
     .select('*');
@@ -199,6 +200,7 @@ export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
     return [];
   }
   
+  console.log('fetchSpecialItems - Fetched items:', data?.length || 0);
   return data || [];
 };
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -23,8 +22,10 @@ const Cart = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log('Cart - Fetching special items');
         // Fetch special items
         const specialItemsData = await fetchSpecialItems();
+        console.log('Cart - Special items fetched:', specialItemsData?.length || 0);
         setSpecialItems(specialItemsData);
       } catch (error) {
         console.error('Error fetching special items:', error);
@@ -156,7 +157,7 @@ const Cart = () => {
           </div>
         )}
         
-        {/* Special Items Section */}
+        {/* Special Items Section - Only show when we have items to show */}
         {items.length > 0 && specialItems.length > 0 && (
           <section className="mt-12">
             <h2 className="text-xl md:text-2xl font-playfair font-semibold mb-6">
@@ -170,12 +171,14 @@ const Cart = () => {
           </section>
         )}
         
+        {/* Show loading state while fetching items */}
         {loading && (
           <div className="text-center py-8">
             Carregando itens especiais...
           </div>
         )}
         
+        {/* Show error state if fetch failed */}
         {error && (
           <div className="text-center py-4 text-red-500">
             {error}
