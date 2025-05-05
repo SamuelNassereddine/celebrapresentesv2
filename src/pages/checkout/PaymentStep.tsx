@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout/Layout';
@@ -204,14 +205,20 @@ const PaymentStep = () => {
         console.error('PaymentStep - Error deleting existing items:', deleteError);
       }
       
-      // Adicionar os itens do carrinho ao pedido
-      const orderItems = items.map(item => ({
-        order_id: orderId,
-        product_title: item.title,
-        unit_price: item.price,
-        quantity: item.quantity,
-        product_id: item.id.startsWith('special-') ? null : item.id // Apenas produtos regulares têm product_id
-      }));
+      // Adicionar os itens do carrinho ao pedido, separando itens regulares e especiais
+      const orderItems = items.map(item => {
+        // Verifica se é um produto especial (começando com 'special-')
+        const isSpecialItem = item.id.startsWith('special-');
+        
+        return {
+          order_id: orderId,
+          product_title: item.title,
+          unit_price: item.price,
+          quantity: item.quantity,
+          // Define product_id como null para itens especiais
+          product_id: isSpecialItem ? null : item.id
+        };
+      });
       
       console.log('PaymentStep - Items to add:', orderItems);
       

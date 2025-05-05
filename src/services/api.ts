@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -433,10 +434,17 @@ export const saveOrder = async (
     console.log('Pedido criado com sucesso:', createdOrder);
 
     // Preparar os itens do pedido com o ID do pedido criado
-    const itemsWithOrderId = orderItems.map(item => ({
-      ...item,
-      order_id: createdOrder.id
-    }));
+    const itemsWithOrderId = orderItems.map(item => {
+      // Verificar se o product_id começa com 'special-', indicando um item especial
+      const isSpecialItem = item.product_id.startsWith('special-');
+      
+      return {
+        ...item,
+        order_id: createdOrder.id,
+        // Define product_id como null para itens especiais
+        product_id: isSpecialItem ? null : item.product_id
+      };
+    });
 
     // Inserir os itens do pedido
     const { error: itemsError } = await supabase
