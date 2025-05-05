@@ -25,9 +25,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
+          console.log("Active session found");
           // Admin login simplificado
           setUser({ email: 'admin' });
           setRole('master');
+        } else {
+          console.log("No active session found");
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
@@ -45,13 +48,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Aceita apenas admin/admin@2025
       if (email === 'admin' && password === 'admin@2025') {
+        console.log("Login attempt with correct credentials");
         // Autenticar no Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
           email: 'admin@example.com',
           password: 'admin@2025',
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase auth error:", error);
+          throw error;
+        }
+        
+        console.log("Authentication successful, session:", data.session?.user?.id);
         
         // Definir o usuário como admin
         setUser({ email: 'admin' });
@@ -60,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast.success('Login realizado com sucesso');
         return;
       } else {
+        console.log("Invalid login credentials");
         throw new Error('Credenciais inválidas');
       }
     } catch (error: any) {
@@ -74,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log("Signing out");
       // Sair do Supabase
       await supabase.auth.signOut();
       

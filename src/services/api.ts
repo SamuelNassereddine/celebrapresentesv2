@@ -125,18 +125,24 @@ export const fetchProductsByCategory = async (categoryId: string): Promise<(Prod
 };
 
 export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
-  const { data, error } = await supabase
-    .from('delivery_time_slots')
-    .select('*')
-    .eq('active', true)
-    .order('name');
-  
-  if (error) {
-    console.error('Error fetching delivery time slots:', error);
+  console.log('Fetching delivery time slots');
+  try {
+    const { data, error } = await supabase
+      .from('delivery_time_slots')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error('Error fetching delivery time slots:', error);
+      throw error;
+    }
+    
+    console.log('Fetched time slots:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    console.error('Error in fetchDeliveryTimeSlots:', error);
     return [];
   }
-  
-  return data || [];
 };
 
 export const createDeliveryTimeSlot = async (timeSlot: {
@@ -145,51 +151,72 @@ export const createDeliveryTimeSlot = async (timeSlot: {
   end_time: string;
   active?: boolean;
 }): Promise<DeliveryTimeSlot | null> => {
-  const { data, error } = await supabase
-    .from('delivery_time_slots')
-    .insert(timeSlot)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error creating delivery time slot:', error);
+  console.log('Creating delivery time slot:', timeSlot);
+  try {
+    const { data, error } = await supabase
+      .from('delivery_time_slots')
+      .insert(timeSlot)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating delivery time slot:', error);
+      throw error;
+    }
+    
+    console.log('Created time slot:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in createDeliveryTimeSlot:', error);
     return null;
   }
-  
-  return data;
 };
 
 export const updateDeliveryTimeSlot = async (
   id: string, 
   updates: Partial<DeliveryTimeSlot>
 ): Promise<DeliveryTimeSlot | null> => {
-  const { data, error } = await supabase
-    .from('delivery_time_slots')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error updating delivery time slot:', error);
+  console.log('Updating delivery time slot:', id, updates);
+  try {
+    const { data, error } = await supabase
+      .from('delivery_time_slots')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating delivery time slot:', error);
+      throw error;
+    }
+    
+    console.log('Updated time slot:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in updateDeliveryTimeSlot:', error);
     return null;
   }
-  
-  return data;
 };
 
 export const deleteDeliveryTimeSlot = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('delivery_time_slots')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error deleting delivery time slot:', error);
+  console.log('Deleting delivery time slot:', id);
+  try {
+    const { error } = await supabase
+      .from('delivery_time_slots')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting delivery time slot:', error);
+      throw error;
+    }
+    
+    console.log('Deleted time slot:', id);
+    return true;
+  } catch (error) {
+    console.error('Error in deleteDeliveryTimeSlot:', error);
     return false;
   }
-  
-  return true;
 };
 
 // Função para upload de imagem
