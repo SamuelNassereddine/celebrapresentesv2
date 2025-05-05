@@ -39,6 +39,16 @@ const Footer = () => {
     loadData();
   }, []);
 
+  if (loading) {
+    return (
+      <footer className="bg-gray-50 pt-10 pb-6">
+        <div className="container mx-auto px-4">
+          <div className="text-center">Carregando...</div>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="bg-gray-50 pt-10 pb-6">
       <div className="container mx-auto px-4">
