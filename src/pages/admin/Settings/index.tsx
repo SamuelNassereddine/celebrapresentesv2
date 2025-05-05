@@ -114,26 +114,10 @@ const Settings = () => {
           end_time: '',
           active: true
         });
-      } else {
-        // Verificar se o usuário tem permissão
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session) {
-          toast.error('Sessão expirada. Por favor, faça login novamente.');
-        } else {
-          toast.error('Erro ao adicionar horário. Verifique se você tem permissão.');
-        }
       }
     } catch (error: any) {
       console.error('Error adding time slot:', error);
-      let errorMessage = 'Erro ao adicionar horário de entrega';
-      
-      if (error.message?.includes('row-level security') || 
-          error.message?.includes('violates') || 
-          error.code === '42501') {
-        errorMessage = 'Erro de permissão. Verifique se você tem acesso para esta operação.';
-      }
-      
-      toast.error(errorMessage);
+      toast.error('Erro ao adicionar horário de entrega. Tente novamente.');
     } finally {
       setTimeSlotLoading(false);
     }
