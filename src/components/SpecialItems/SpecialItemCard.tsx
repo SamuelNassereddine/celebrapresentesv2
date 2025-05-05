@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Database } from '@/integrations/supabase/types';
 import { Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
@@ -23,6 +24,8 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
       quantity: 1,
       image: item.image_url
     });
+    
+    toast.success(`${item.title} adicionado ao carrinho`);
   };
   
   return (
@@ -32,6 +35,10 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
           src={item.image_url || '/placeholder.svg'} 
           alt={item.title}
           className="w-full h-full object-cover transition-transform group-hover:scale-105"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = '/placeholder.svg';
+          }}
         />
       </div>
       

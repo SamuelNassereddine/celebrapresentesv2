@@ -8,6 +8,7 @@ import { fetchSpecialItems } from '@/services/api';
 import SpecialItemCard from '@/components/SpecialItems/SpecialItemCard';
 import { Database } from '@/integrations/supabase/types';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
@@ -27,10 +28,18 @@ const Cart = () => {
         // Fetch special items
         const specialItemsData = await fetchSpecialItems();
         console.log('Cart - Special items fetched:', specialItemsData?.length || 0);
+        
+        if (!specialItemsData || specialItemsData.length === 0) {
+          console.log('No special items were returned from the API');
+        } else {
+          console.log('Special items data:', specialItemsData);
+        }
+        
         setSpecialItems(specialItemsData);
       } catch (error) {
         console.error('Error fetching special items:', error);
         setError('Não foi possível carregar os itens especiais');
+        toast.error('Erro ao carregar itens especiais');
       } finally {
         setLoading(false);
       }
@@ -76,6 +85,10 @@ const Cart = () => {
         ) : error ? (
           <div className="text-center py-4 text-red-500">
             {error}
+          </div>
+        ) : specialItems.length === 0 ? (
+          <div className="text-center py-4">
+            Nenhum item especial disponível no momento.
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">

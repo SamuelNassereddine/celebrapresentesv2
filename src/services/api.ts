@@ -245,17 +245,23 @@ export const deleteProductImageFromStorage = async (url: string): Promise<boolea
 // Special items functions
 export const fetchSpecialItems = async (): Promise<SpecialItem[]> => {
   console.log('fetchSpecialItems - Starting fetch');
-  const { data, error } = await supabase
-    .from('special_items')
-    .select('*');
-  
-  if (error) {
-    console.error('Error fetching special items:', error);
+  try {
+    const { data, error } = await supabase
+      .from('special_items')
+      .select('*')
+      .order('created_at');
+    
+    if (error) {
+      console.error('Error fetching special items:', error);
+      throw error;
+    }
+    
+    console.log('fetchSpecialItems - Fetched items:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    console.error('Error in fetchSpecialItems:', error);
     return [];
   }
-  
-  console.log('fetchSpecialItems - Fetched items:', data?.length || 0);
-  return data || [];
 };
 
 export const createSpecialItem = async (item: {
