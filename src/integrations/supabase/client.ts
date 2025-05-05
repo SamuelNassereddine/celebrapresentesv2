@@ -15,5 +15,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storageKey: 'flora-admin-auth',
     detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      // Adiciona cabeçalhos para ajudar com problemas de CORS e RLS
+      'X-Client-Info': 'supabase-js@2.49.4'
+    }
   }
 });

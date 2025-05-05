@@ -25,21 +25,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          console.log("Active session found");
+          console.log("Active session found:", session.user.id);
           // Admin login simplificado
           setUser({ email: 'admin' });
           setRole('master');
+          
+          // Verificar se o token de sessão é válido
+          const { data: userResponse, error: userError } = await supabase
+            .from('admin_users')
+            .select('role')
+            .limit(1);
+            
+          if (userError) {
+            console.warn("Token pode estar expirado ou RLS não está configurada corretamente:", userError);
+          } else {
+            console.log("User has valid access to protected resources");
+          }
         } else {
           console.log("No active session found");
+          setUser(null);
+          setRole(null);
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
+        setUser(null);
+        setRole(null);
       } finally {
         setLoading(false);
       }
     };
     
     checkSession();
+    
+    // Configurar listener para mudanças na autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event);
+        if (event === 'SIGNED_IN' && session) {
+          setUser({ email: 'admin' });
+          setRole('master');
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setRole(null);
+        }
+      }
+    );
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

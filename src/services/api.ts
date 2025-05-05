@@ -127,6 +127,14 @@ export const fetchProductsByCategory = async (categoryId: string): Promise<(Prod
 export const fetchDeliveryTimeSlots = async (): Promise<DeliveryTimeSlot[]> => {
   console.log('Fetching delivery time slots');
   try {
+    // Verificar se o usuário está autenticado
+    const session = await supabase.auth.getSession();
+    if (!session.data.session) {
+      console.warn('User not authenticated when fetching time slots');
+    } else {
+      console.log('User authenticated:', session.data.session.user.id);
+    }
+    
     const { data, error } = await supabase
       .from('delivery_time_slots')
       .select('*')
@@ -150,12 +158,28 @@ export const createDeliveryTimeSlot = async (timeSlot: {
   start_time: string;
   end_time: string;
   active?: boolean;
+  fee?: number;
 }): Promise<DeliveryTimeSlot | null> => {
   console.log('Creating delivery time slot:', timeSlot);
   try {
+    // Verificar se o usuário está autenticado
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      console.error('User not authenticated when creating time slot');
+      throw new Error('User not authenticated');
+    }
+    
+    console.log('User authenticated, role check should pass');
+    
+    // Adicionar campo fee se não estiver presente
+    const slotWithFee = {
+      ...timeSlot,
+      fee: timeSlot.fee || 10.00 // Valor padrão se não for fornecido
+    };
+    
     const { data, error } = await supabase
       .from('delivery_time_slots')
-      .insert(timeSlot)
+      .insert(slotWithFee)
       .select()
       .single();
     
