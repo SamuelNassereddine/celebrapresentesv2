@@ -1,13 +1,13 @@
 
 import { ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Loader } from 'lucide-react';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 
 interface AdminLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
   requiredRole?: 'master' | 'editor' | 'viewer';
 }
 
@@ -60,7 +60,7 @@ const AdminLayout = ({ children, requiredRole = 'viewer' }: AdminLayoutProps) =>
         <AdminHeader />
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
           <div className="container mx-auto px-4 py-8">
-            {children}
+            {children || <Outlet />}
           </div>
         </main>
       </div>
