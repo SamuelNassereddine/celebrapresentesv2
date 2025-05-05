@@ -37,6 +37,8 @@ const DeliveryStep = () => {
     recipientSelf: true,
     recipientName: '',
     recipientPhone: '',
+    presentedName: '',
+    presentedPhone: '',
     cep: '',
     street: '',
     number: '',
@@ -90,6 +92,8 @@ const DeliveryStep = () => {
           recipientSelf: orderData.recipient_name === orderData.customer_name,
           recipientName: orderData.recipient_name || '',
           recipientPhone: orderData.recipient_phone || '',
+          presentedName: orderData.presented_name || '',
+          presentedPhone: orderData.presented_phone || '',
           street: orderData.address_street || '',
           number: orderData.address_number || '',
           complement: orderData.address_complement || '',
@@ -175,7 +179,7 @@ const DeliveryStep = () => {
     }
     
     // For phone field, apply mask
-    if (name === 'recipientPhone') {
+    if (name === 'recipientPhone' || name === 'presentedPhone') {
       const cleaned = value.replace(/\D/g, '');
       let formatted = cleaned;
       
@@ -188,7 +192,7 @@ const DeliveryStep = () => {
         }
       }
       
-      setFormData({ ...formData, recipientPhone: formatted });
+      setFormData({ ...formData, [name]: formatted });
       return;
     }
     
@@ -241,6 +245,8 @@ const DeliveryStep = () => {
         .update({
           recipient_name: formData.recipientSelf ? buyerName : formData.recipientName,
           recipient_phone: formData.recipientSelf ? buyerPhone : formData.recipientPhone,
+          presented_name: formData.recipientSelf ? null : formData.presentedName,
+          presented_phone: formData.recipientSelf ? null : formData.presentedPhone,
           address_street: formData.street,
           address_number: formData.number,
           address_complement: formData.complement || null,
@@ -284,13 +290,33 @@ const DeliveryStep = () => {
       toast({
         variant: "destructive",
         title: "Campo obrigatório",
-        description: "Por favor, insira o nome do presenteado.",
+        description: "Por favor, insira o nome do destinatário.",
       });
       setLoading(false);
       return;
     }
     
     if (!formData.recipientSelf && !formData.recipientPhone) {
+      toast({
+        variant: "destructive",
+        title: "Campo obrigatório",
+        description: "Por favor, insira o telefone do destinatário.",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    if (!formData.recipientSelf && !formData.presentedName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Campo obrigatório",
+        description: "Por favor, insira o nome do presenteado.",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    if (!formData.recipientSelf && !formData.presentedPhone) {
       toast({
         variant: "destructive",
         title: "Campo obrigatório",
@@ -305,6 +331,16 @@ const DeliveryStep = () => {
       toast({
         variant: "destructive",
         title: "Telefone inválido",
+        description: "Por favor, insira um telefone válido no formato (99) 99999-9999.",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    if (!formData.recipientSelf && formData.presentedPhone && !phoneRegex.test(formData.presentedPhone)) {
+      toast({
+        variant: "destructive",
+        title: "Telefone do presenteado inválido",
         description: "Por favor, insira um telefone válido no formato (99) 99999-9999.",
       });
       setLoading(false);
@@ -445,7 +481,7 @@ const DeliveryStep = () => {
                       <div className="mt-4 space-y-4">
                         <div>
                           <label htmlFor="recipientName" className="block text-gray-700 mb-2">
-                            Nome do Presenteado
+                            Nome do Destinatário
                           </label>
                           <input
                             id="recipientName"
@@ -461,13 +497,45 @@ const DeliveryStep = () => {
                         
                         <div>
                           <label htmlFor="recipientPhone" className="block text-gray-700 mb-2">
-                            Telefone do Presenteado
+                            Telefone do Destinatário
                           </label>
                           <input
                             id="recipientPhone"
                             name="recipientPhone"
                             type="tel"
                             value={formData.recipientPhone}
+                            onChange={handleChange}
+                            placeholder="(00) 00000-0000"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required={!formData.recipientSelf}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="presentedName" className="block text-gray-700 mb-2">
+                            Nome do Presenteado
+                          </label>
+                          <input
+                            id="presentedName"
+                            name="presentedName"
+                            type="text"
+                            value={formData.presentedName}
+                            onChange={handleChange}
+                            placeholder="Nome de quem está sendo presenteado"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required={!formData.recipientSelf}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="presentedPhone" className="block text-gray-700 mb-2">
+                            Telefone do Presenteado
+                          </label>
+                          <input
+                            id="presentedPhone"
+                            name="presentedPhone"
+                            type="tel"
+                            value={formData.presentedPhone}
                             onChange={handleChange}
                             placeholder="(00) 00000-0000"
                             className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"

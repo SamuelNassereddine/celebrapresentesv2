@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -321,6 +320,8 @@ export interface OrderData {
   customer_email: string | null;
   recipient_name: string | null;
   recipient_phone: string | null;
+  presented_name: string | null;
+  presented_phone: string | null;
   address_street: string | null;
   address_number: string | null;
   address_complement: string | null;

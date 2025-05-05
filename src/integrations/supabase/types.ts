@@ -156,6 +156,8 @@ export type Database = {
           id: string
           order_number: string | null
           personalization_text: string | null
+          presented_name: string | null
+          presented_phone: string | null
           recipient_name: string | null
           recipient_phone: string | null
           status: string
@@ -179,6 +181,8 @@ export type Database = {
           id?: string
           order_number?: string | null
           personalization_text?: string | null
+          presented_name?: string | null
+          presented_phone?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
           status?: string
@@ -202,6 +206,8 @@ export type Database = {
           id?: string
           order_number?: string | null
           personalization_text?: string | null
+          presented_name?: string | null
+          presented_phone?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
           status?: string

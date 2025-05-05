@@ -205,7 +205,22 @@ const OrderDetail = () => {
                   <p className="text-gray-600">Email: {order.customer_email || 'não informado'}</p>
                 </div>
                 
-                {order.recipient_name && order.recipient_name !== order.customer_name && (
+                {(order.recipient_name && order.recipient_name !== order.customer_name) && (
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="font-medium flex items-center gap-2 mb-2">
+                      <span className="text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                      </span>
+                      Dados do Destinatário
+                    </h4>
+                    <p className="text-gray-700 font-medium">{order.recipient_name}</p>
+                    {order.recipient_phone && (
+                      <p className="text-gray-600">Telefone: {order.recipient_phone}</p>
+                    )}
+                  </div>
+                )}
+                
+                {(order.presented_name) && (
                   <div className="border-t pt-4 mt-4">
                     <h4 className="font-medium flex items-center gap-2 mb-2">
                       <span className="text-gray-500">
@@ -213,9 +228,9 @@ const OrderDetail = () => {
                       </span>
                       Dados do Presenteado
                     </h4>
-                    <p className="text-gray-700 font-medium">{order.recipient_name}</p>
-                    {order.recipient_phone && (
-                      <p className="text-gray-600">Telefone: {order.recipient_phone}</p>
+                    <p className="text-gray-700 font-medium">{order.presented_name}</p>
+                    {order.presented_phone && (
+                      <p className="text-gray-600">Telefone: {order.presented_phone}</p>
                     )}
                   </div>
                 )}
