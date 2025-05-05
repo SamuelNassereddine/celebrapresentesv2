@@ -7,6 +7,7 @@ import ProductAddedNotification from '@/components/Cart/ProductAddedNotification
 import { useToast } from '@/hooks/use-toast';
 import { fetchProductById } from '@/services/api';
 import { Database } from '@/integrations/supabase/types';
+import { Button } from '@/components/ui/button';
 import {
   Carousel,
   CarouselContent,
@@ -14,7 +15,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 
 type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
@@ -28,20 +28,29 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
   const { toast } = useToast();
-  const [activeImage, setActiveImage] = useState(0);
   
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return;
       
       setLoading(true);
-      const productData = await fetchProductById(id);
-      setProduct(productData);
-      setLoading(false);
+      try {
+        const productData = await fetchProductById(id);
+        setProduct(productData);
+      } catch (error) {
+        console.error("Error loading product:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os dados do produto",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadProduct();
-  }, [id]);
+  }, [id, toast]);
   
   if (loading) {
     return (
@@ -59,12 +68,12 @@ const ProductDetail = () => {
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-semibold mb-4">Produto não encontrado</h1>
           <p className="mb-6">Desculpe, não conseguimos encontrar o produto que você está procurando.</p>
-          <button 
+          <Button 
             onClick={() => navigate('/products')}
-            className="btn-primary"
+            variant="default"
           >
             Voltar para produtos
-          </button>
+          </Button>
         </div>
       </Layout>
     );
@@ -86,7 +95,7 @@ const ProductDetail = () => {
   };
 
   // Determine if we should show a carousel or single image
-  const hasMultipleImages = product.images.length > 1;
+  const hasMultipleImages = product.images && product.images.length > 1;
   
   return (
     <Layout>
@@ -99,7 +108,7 @@ const ProductDetail = () => {
                 <Carousel className="w-full">
                   <CarouselContent>
                     {product.images.map((image, index) => (
-                      <CarouselItem key={image.id}>
+                      <CarouselItem key={image.id || index}>
                         <div className="p-1">
                           <img 
                             src={image.url || '/placeholder.svg'} 
@@ -118,7 +127,7 @@ const ProductDetail = () => {
                 </Carousel>
               ) : (
                 <img 
-                  src={product.images[0]?.url || '/placeholder.svg'} 
+                  src={(product.images && product.images[0]?.url) || '/placeholder.svg'} 
                   alt={product.title}
                   className="w-full h-auto object-cover"
                   onError={(e) => {
@@ -163,12 +172,13 @@ const ProductDetail = () => {
                 </div>
               </div>
               
-              <button 
+              <Button 
                 onClick={handleAddToCart}
-                className="btn-primary w-full md:w-auto md:px-16"
+                variant="default"
+                className="w-full md:w-auto md:px-16"
               >
                 Adicionar ao Carrinho
-              </button>
+              </Button>
             </div>
           </div>
         </div>
