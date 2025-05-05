@@ -147,15 +147,22 @@ const Settings = () => {
     
     setTimeSlotLoading(true);
     try {
-      const success = await deleteDeliveryTimeSlot(id);
+      await deleteDeliveryTimeSlot(id);
       
-      if (success) {
-        setDeliveryTimeSlots(slots => slots.filter(slot => slot.id !== id));
-        toast.success('Horário de entrega excluído com sucesso');
-      }
-    } catch (error) {
+      // Se chegou aqui, a exclusão foi bem-sucedida
+      setDeliveryTimeSlots(slots => slots.filter(slot => slot.id !== id));
+      toast.success('Horário de entrega excluído com sucesso');
+    } catch (error: any) {
       console.error('Error deleting time slot:', error);
-      toast.error('Erro ao excluir horário de entrega');
+      
+      // Mensagem de erro mais específica baseada no erro retornado
+      if (error.message?.includes('está sendo usado em pedidos')) {
+        toast.error('Este horário não pode ser excluído porque está sendo usado em pedidos existentes');
+      } else if (error.code === '23503') {
+        toast.error('Este horário não pode ser excluído porque está vinculado a pedidos existentes');
+      } else {
+        toast.error('Erro ao excluir horário de entrega');
+      }
     } finally {
       setTimeSlotLoading(false);
     }

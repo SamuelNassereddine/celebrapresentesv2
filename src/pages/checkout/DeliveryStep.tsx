@@ -421,6 +421,14 @@ const DeliveryStep = () => {
     setLoading(false);
   };
   
+  // Função para selecionar um horário de entrega
+  const handleTimeSlotSelect = (slotId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      deliveryTimeSlot: slotId
+    }));
+  };
+  
   // Find the selected time slot
   const selectedTimeSlot = deliveryTimeSlots.find(
     slot => slot.id === formData.deliveryTimeSlot
@@ -678,7 +686,7 @@ const DeliveryStep = () => {
                         <label className="block text-gray-700 mb-2">
                           Horário de Entrega
                         </label>
-                        <RadioGroup className="space-y-3">
+                        <div className="space-y-3">
                           {deliveryTimeSlots.length > 0 ? (
                             deliveryTimeSlots.map(slot => (
                               <Card 
@@ -688,14 +696,18 @@ const DeliveryStep = () => {
                                     ? 'border-primary ring-1 ring-primary'
                                     : 'hover:border-gray-300'
                                 }`}
-                                onClick={() => setFormData(prev => ({ ...prev, deliveryTimeSlot: slot.id }))}
+                                onClick={() => handleTimeSlotSelect(slot.id)}
                               >
                                 <CardContent className="flex items-center justify-between p-4">
                                   <div className="flex items-center space-x-2">
-                                    <RadioGroupItem 
-                                      value={slot.id} 
-                                      id={`slot-${slot.id}`} 
+                                    <input 
+                                      type="radio" 
+                                      id={`slot-${slot.id}`}
+                                      name="deliveryTimeSlot"
+                                      value={slot.id}
                                       checked={formData.deliveryTimeSlot === slot.id}
+                                      onChange={() => handleTimeSlotSelect(slot.id)}
+                                      className="h-4 w-4 text-primary"
                                     />
                                     <div>
                                       <p className="font-medium">{slot.name}</p>
@@ -711,7 +723,7 @@ const DeliveryStep = () => {
                           ) : (
                             <p className="text-gray-500 italic">Nenhum horário disponível</p>
                           )}
-                        </RadioGroup>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -208,6 +208,25 @@ export const updateDeliveryTimeSlot = async (
 export const deleteDeliveryTimeSlot = async (id: string): Promise<boolean> => {
   console.log('Deleting delivery time slot:', id);
   try {
+    // Primeiro, verificar se o horário está sendo usado em algum pedido
+    const { data: orderData, error: orderCheckError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('delivery_time_slot_id', id)
+      .limit(1);
+    
+    if (orderCheckError) {
+      console.error('Error checking if time slot is in use:', orderCheckError);
+      throw orderCheckError;
+    }
+    
+    // Se o horário estiver sendo usado em algum pedido, não permitir a exclusão
+    if (orderData && orderData.length > 0) {
+      console.error('Cannot delete time slot as it is in use by orders');
+      throw new Error('Este horário não pode ser excluído porque está sendo usado em pedidos existentes');
+    }
+    
+    // Prosseguir com a exclusão se não houver pedidos usando este horário
     const { error } = await supabase
       .from('delivery_time_slots')
       .delete()
@@ -220,9 +239,9 @@ export const deleteDeliveryTimeSlot = async (id: string): Promise<boolean> => {
     
     console.log('Deleted time slot:', id);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in deleteDeliveryTimeSlot:', error);
-    return false;
+    throw error;
   }
 };
 
