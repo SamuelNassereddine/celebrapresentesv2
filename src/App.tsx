@@ -53,16 +53,18 @@ function App() {
           <CartProvider>
             <Router>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout/1" element={<IdentificationStep />} />
-                <Route path="/checkout/2" element={<DeliveryStep />} />
-                <Route path="/checkout/3" element={<PersonalizationStep />} />
-                <Route path="/checkout/4" element={<PaymentStep />} />
-                <Route path="/checkout/confirmation" element={<Confirmation />} />
+                <Route path="/" element={<Index />}>
+                  <Route index element={<Home />} />
+                  <Route path="products" element={<Products />} />
+                  <Route path="product/:id" element={<ProductDetail />} />
+                  <Route path="category/:slug" element={<CategoryPage />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="checkout/1" element={<IdentificationStep />} />
+                  <Route path="checkout/2" element={<DeliveryStep />} />
+                  <Route path="checkout/3" element={<PersonalizationStep />} />
+                  <Route path="checkout/4" element={<PaymentStep />} />
+                  <Route path="checkout/confirmation" element={<Confirmation />} />
+                </Route>
                 
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
