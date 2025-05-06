@@ -202,7 +202,6 @@ const PersonalizationStep = () => {
               <Button 
                 onClick={handleSubmit}
                 disabled={loading || message.length > 2000}
-                className="bg-[#f5c6d0] text-[#a62c47]"
               >
                 {loading ? (
                   <>

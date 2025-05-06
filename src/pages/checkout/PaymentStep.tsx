@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout/Layout';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
 import { useCart } from '@/context/CartContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -312,19 +311,16 @@ const PaymentStep = () => {
   
   if (initialLoading) {
     return (
-      <Layout>
         <div className="container mx-auto px-4 py-8 max-w-3xl">
           <CheckoutSteps currentStep={4} />
           <div className="flex justify-center items-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </div>
-      </Layout>
     );
   }
   
   return (
-    <Layout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <CheckoutSteps currentStep={4} />
         
@@ -366,8 +362,9 @@ const PaymentStep = () => {
                     </p>
                     <Button 
                       onClick={handleWhatsAppCheckout}
-                      className="w-full md:w-auto"
+                      className="w-full md:w-auto bg-[#25D366] text-[#ffffff]"
                       disabled={isSubmitting}
+
                     >
                       {isSubmitting ? (
                         <>
@@ -393,7 +390,6 @@ const PaymentStep = () => {
           </div>
         </div>
       </div>
-    </Layout>
   );
 };
 

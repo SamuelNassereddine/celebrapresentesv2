@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-// import Layout from '@/components/Layout/Layout';
+import Layout from '@/components/Layout/Layout';
 import ProductCard from '@/components/Products/ProductCard';
 import { fetchProductsByCategory } from '@/services/api';
 import { Database } from '@/integrations/supabase/types';
@@ -49,6 +49,7 @@ const CategoryPage = () => {
   }, [slug]);
 
   return (
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-playfair font-semibold">
@@ -84,6 +85,7 @@ const CategoryPage = () => {
           </div>
         )}
       </div>
+    </Layout>
   );
 };
 

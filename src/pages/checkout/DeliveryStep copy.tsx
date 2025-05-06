@@ -486,7 +486,7 @@ const DeliveryStep = () => {
                             value={formData.presentedName}
                             onChange={handleChange}
                             placeholder="Nome completo de quem está sendo presenteado"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required={!formData.recipientSelf}
                           />
                         </div>
@@ -502,7 +502,7 @@ const DeliveryStep = () => {
                             value={formData.presentedPhone}
                             onChange={handleChange}
                             placeholder="(00) 00000-0000"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required={!formData.recipientSelf}
                           />
                         </div>
@@ -528,7 +528,7 @@ const DeliveryStep = () => {
                               value={formData.cep}
                               onChange={handleChange}
                               placeholder="Digite o CEP"
-                              className="w-full border pl-10 border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full border pl-10 border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               required
                               maxLength={9}
                             />
@@ -548,7 +548,7 @@ const DeliveryStep = () => {
                             value={formData.street}
                             onChange={handleChange}
                             placeholder="Rua, Avenida, etc."
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                           />
                         </div>
@@ -564,7 +564,7 @@ const DeliveryStep = () => {
                             value={formData.number}
                             onChange={handleChange}
                             placeholder="Número"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                           />
                         </div>
@@ -581,7 +581,7 @@ const DeliveryStep = () => {
                           value={formData.complement}
                           onChange={handleChange}
                           placeholder="Apartamento, bloco, etc."
-                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
                       
@@ -596,7 +596,7 @@ const DeliveryStep = () => {
                           value={formData.neighborhood}
                           onChange={handleChange}
                           placeholder="Bairro"
-                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           required
                         />
                       </div>
@@ -613,7 +613,7 @@ const DeliveryStep = () => {
                             value={formData.city}
                             onChange={handleChange}
                             placeholder="Cidade"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                           />
                         </div>
@@ -629,7 +629,7 @@ const DeliveryStep = () => {
                             value={formData.state}
                             onChange={handleChange}
                             placeholder="Estado"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                             maxLength={2}
                           />
@@ -739,7 +739,6 @@ const DeliveryStep = () => {
                   <Button 
                     type="submit"
                     disabled={loading}
-                    className="bg-[#f5c6d0] text-[#a62c47]"
                   >
                     {loading ? 'Salvando...' : 'Continuar'}
                   </Button>

@@ -194,7 +194,10 @@ const Cart = () => {
                       .format(totalPrice)}
                   </span>
                 </div>
-                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Entrega</span>
+                  <span>Calculado no checkout</span>
+                </div>
               </div>
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between font-medium">

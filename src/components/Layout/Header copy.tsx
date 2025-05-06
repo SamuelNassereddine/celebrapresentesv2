@@ -77,7 +77,7 @@ const Header = () => {
               />
             ) : (
               <span className="font-playfair text-2xl font-bold">
-                {storeSettings?.name || 'Celebra Presentes'}
+                {storeSettings?.name || 'Flor & Cia'}
               </span>
             )}
           </Link>
@@ -135,9 +135,9 @@ const Header = () => {
             <Link to="/cart" className="relative">
               <ShoppingCart className="h-5 w-5 text-gray-700" />
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#ff0000] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {totalItems}
-              </span>
+                <span className="absolute -top-2 -right-2 bg-primary-foreground text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
               )}
             </Link>
           </nav>
@@ -147,7 +147,7 @@ const Header = () => {
             <Link to="/cart" className="relative">
               <ShoppingCart className="h-5 w-5 text-gray-700" />
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#ff0000] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-primary-foreground text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {totalItems}
                 </span>
               )}

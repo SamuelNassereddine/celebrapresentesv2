@@ -91,15 +91,9 @@
 
   /* Custom button styles */
   .btn-primary {
-    background-color: #f5c6d0 !important; /* Cor de fundo rosa claro */
-    color: #a62c47 !important; /* Cor do texto rosa escuro */
-    font-weight: 500; /* Equivalente a font-medium */
-    padding: 10px 32px; /* Ajuste conforme necessário */
-    border-radius: 0.375rem; /* Ajuste conforme necessário */
-    transition: background-color 0.2s ease, color 0.2s ease; /* Adapta a transição */
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Mantém a sombra */
-    cursor: pointer; /* Garante o cursor de clique */
+    @apply bg-primary text-white font-medium py-2.5 px-8 rounded-md hover:bg-primary-foreground transition duration-200 shadow-md;
   }
+
   .btn-outline {
     @apply bg-transparent border border-gray-300 font-medium py-2.5 px-8 rounded-md hover:bg-gray-50 transition duration-200;
   }
@@ -136,11 +130,4 @@
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg;
   }
-}
-
-/*Hero Section*/
-section.hero-background-custom {
-  background-color: #f5c6d0; /* Sua cor desejada */
-  padding: 50px 0; /* Ajuste conforme necessário */
-  margin-bottom: 20px;
 }

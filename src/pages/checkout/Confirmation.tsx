@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Layout from '@/components/Layout/Layout';
 import { Check } from 'lucide-react';
 
 const Confirmation = () => {
@@ -21,7 +20,6 @@ const Confirmation = () => {
   }, []);
   
   return (
-    <Layout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="bg-white rounded-lg shadow-sm p-6 md:p-8 text-center">
           <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-green-100 mb-6">
@@ -36,15 +34,14 @@ const Confirmation = () => {
             Seu pedido foi enviado com sucesso. Em breve entraremos em contato para confirmar os detalhes.
           </p>
           
-          <Link 
-            to="/"
-            className="btn-primary inline-block"
-          >
-            Voltar para a Página Inicial
-          </Link>
+          <Link
+    to="/"
+    className="inline-block bg-[#25D366] text-white py-2 px-4 rounded-md transition duration-200 hover:bg-[#1EAF5B]"
+>
+    Voltar para a Página Inicial
+</Link>
         </div>
       </div>
-    </Layout>
   );
 };
 

@@ -1,6 +1,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Layout from '@/components/Layout/Layout';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -217,6 +218,7 @@ const IdentificationStep = () => {
   };
   
   return (
+    <Layout>
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <CheckoutSteps currentStep={1} />
         
@@ -285,6 +287,7 @@ const IdentificationStep = () => {
           </form>
         </div>
       </div>
+    </Layout>
   );
 };
 

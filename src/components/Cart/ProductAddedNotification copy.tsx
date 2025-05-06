@@ -63,13 +63,13 @@ const ProductAddedNotification: React.FC = () => {
           </div>
         </div>
         <div className="flex space-x-2">
-        <Link
-  to="/cart"
-  className="flex-1 py-2 bg-[#f5c6d0] text-[#a62c47] rounded text-center font-medium hover:bg-primary-foreground transition-colors"
-  onClick={() => setIsCartOpen(false)}
->
-  Ver carrinho
-</Link>
+          <Link
+            to="/cart"
+            className="flex-1 py-2 bg-primary text-white rounded text-center font-medium hover:bg-primary-foreground transition-colors"
+            onClick={() => setIsCartOpen(false)}
+          >
+            Ver carrinho
+          </Link>
           <button
             onClick={() => setIsCartOpen(false)}
             className="flex-1 py-2 border border-gray-300 rounded text-center font-medium hover:bg-gray-50 transition-colors"
