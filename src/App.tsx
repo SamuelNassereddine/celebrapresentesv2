@@ -64,25 +64,27 @@ function App() {
                 <Route path="checkout/confirmation" element={<Confirmation />} />
               </Route>
               
-              {/* Admin routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="orders/:id" element={<AdminOrderDetail />} />
-                <Route path="products" element={<AdminProducts />} />
-                <Route path="products/new" element={<AdminProductForm />} />
-                <Route path="products/:id" element={<AdminProductForm />} />
-                <Route path="categories" element={<AdminCategories />} />
-                <Route path="categories/new" element={<AdminCategoryForm />} />
-                <Route path="categories/:id" element={<AdminCategoryForm />} />
-                <Route path="special-items" element={<AdminSpecialItems />} />
-                <Route path="special-items/new" element={<AdminSpecialItemForm />} />
-                <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
-                <Route path="calendar" element={<AdminCalendar />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="users" element={<AdminUsers />} />
-              </Route>
+              {/* Rota para a tela de login administrativa */}
+  <Route path="/admin" element={<AdminLogin />} />
+
+{/* Rotas administrativas protegidas (usando um layout) */}
+<Route path="/admin/dashboard" element={<AdminLayout />}>
+  <Route index element={<AdminDashboard />} /> {/* /admin/dashboard */}
+  <Route path="orders" element={<AdminOrders />} /> {/* /admin/dashboard/orders */}
+  <Route path="orders/:id" element={<AdminOrderDetail />} />
+  <Route path="products" element={<AdminProducts />} />
+  <Route path="products/new" element={<AdminProductForm />} />
+  <Route path="products/:id" element={<AdminProductForm />} />
+  <Route path="categories" element={<AdminCategories />} />
+  <Route path="categories/new" element={<AdminCategoryForm />} />
+  <Route path="categories/:id" element={<AdminCategoryForm />} />
+  <Route path="special-items" element={<AdminSpecialItems />} />
+  <Route path="special-items/new" element={<AdminSpecialItemForm />} />
+  <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
+  <Route path="calendar" element={<AdminCalendar />} />
+  <Route path="settings" element={<AdminSettings />} />
+  <Route path="users" element={<AdminUsers />} />
+</Route>
               
               <Route path="*" element={<NotFound />} />
             </Routes>
