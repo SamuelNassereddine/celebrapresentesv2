@@ -17,7 +17,6 @@ import DeliveryStep from './pages/checkout/DeliveryStep';
 import PersonalizationStep from './pages/checkout/PersonalizationStep';
 import PaymentStep from './pages/checkout/PaymentStep';
 import Confirmation from './pages/checkout/Confirmation';
-import { ThemeProvider } from './components/Theme/ThemeProvider';
 
 // Admin routes
 import AdminLayout from './pages/admin/AdminLayout';
@@ -48,53 +47,51 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Router>
-              <Routes>
-                <Route path="/" element={<Index />}>
-                  <Route index element={<Home />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="product/:id" element={<ProductDetail />} />
-                  <Route path="category/:slug" element={<CategoryPage />} />
-                  <Route path="cart" element={<Cart />} />
-                  <Route path="checkout/1" element={<IdentificationStep />} />
-                  <Route path="checkout/2" element={<DeliveryStep />} />
-                  <Route path="checkout/3" element={<PersonalizationStep />} />
-                  <Route path="checkout/4" element={<PaymentStep />} />
-                  <Route path="checkout/confirmation" element={<Confirmation />} />
-                </Route>
-                
-                {/* Admin routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="orders/:id" element={<AdminOrderDetail />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="products/new" element={<AdminProductForm />} />
-                  <Route path="products/:id" element={<AdminProductForm />} />
-                  <Route path="categories" element={<AdminCategories />} />
-                  <Route path="categories/new" element={<AdminCategoryForm />} />
-                  <Route path="categories/:id" element={<AdminCategoryForm />} />
-                  <Route path="special-items" element={<AdminSpecialItems />} />
-                  <Route path="special-items/new" element={<AdminSpecialItemForm />} />
-                  <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
-                  <Route path="calendar" element={<AdminCalendar />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                  <Route path="users" element={<AdminUsers />} />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Router>
-            
-            <Toaster />
-            <SonnerToaster position="top-right" />
-          </CartProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />}>
+                <Route index element={<Home />} />
+                <Route path="products" element={<Products />} />
+                <Route path="product/:id" element={<ProductDetail />} />
+                <Route path="category/:slug" element={<CategoryPage />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="checkout/1" element={<IdentificationStep />} />
+                <Route path="checkout/2" element={<DeliveryStep />} />
+                <Route path="checkout/3" element={<PersonalizationStep />} />
+                <Route path="checkout/4" element={<PaymentStep />} />
+                <Route path="checkout/confirmation" element={<Confirmation />} />
+              </Route>
+              
+              {/* Admin routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="orders/:id" element={<AdminOrderDetail />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="products/new" element={<AdminProductForm />} />
+                <Route path="products/:id" element={<AdminProductForm />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="categories/new" element={<AdminCategoryForm />} />
+                <Route path="categories/:id" element={<AdminCategoryForm />} />
+                <Route path="special-items" element={<AdminSpecialItems />} />
+                <Route path="special-items/new" element={<AdminSpecialItemForm />} />
+                <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
+                <Route path="calendar" element={<AdminCalendar />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="users" element={<AdminUsers />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          
+          <Toaster />
+          <SonnerToaster position="top-right" />
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

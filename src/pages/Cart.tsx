@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout/Layout';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, Trash } from 'lucide-react';
 import { fetchSpecialItems } from '@/services/api';
@@ -102,126 +102,124 @@ const Cart = () => {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">Seu Carrinho</h1>
-        
-        {items.length === 0 ? (
-          <div>
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-100">
-                <ShoppingCart className="h-8 w-8 text-gray-400" />
-              </div>
-              <h2 className="text-xl font-medium mb-2">Seu carrinho está vazio</h2>
-              <p className="text-gray-600 mb-8">Adicione produtos para continuar comprando</p>
-              <Button 
-                asChild
-                className="btn-primary"
-              >
-                <Link to="/products">
-                  Ver produtos
-                </Link>
-              </Button>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">Seu Carrinho</h1>
+      
+      {items.length === 0 ? (
+        <div>
+          <div className="text-center py-12">
+            <div className="mx-auto w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gray-100">
+              <ShoppingCart className="h-8 w-8 text-gray-400" />
             </div>
-            
-            {/* Special Items - Always show even with empty cart */}
-            {renderSpecialItemsSection()}
+            <h2 className="text-xl font-medium mb-2">Seu carrinho está vazio</h2>
+            <p className="text-gray-600 mb-8">Adicione produtos para continuar comprando</p>
+            <Button 
+              asChild
+              className="btn-primary"
+            >
+              <Link to="/products">
+                Ver produtos
+              </Link>
+            </Button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="md:col-span-2">
-              <Card className="p-6">
-                <h2 className="text-lg font-medium mb-4">Itens no carrinho</h2>
-                <div className="divide-y">
-                  {items.map(item => (
-                    <div key={item.id} className="py-4 flex items-center">
-                      <img 
-                        src={item.image} 
-                        alt={item.title}
-                        className="w-20 h-20 object-cover rounded"
-                      />
-                      <div className="ml-4 flex-grow">
-                        <h3 className="font-medium">{item.title}</h3>
-                        <p className="text-primary-foreground">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-                            .format(item.price)}
-                        </p>
-                      </div>
-                      <div className="flex items-center">
-                        <button 
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md"
-                          aria-label="Diminuir quantidade"
-                        >
-                          -
-                        </button>
-                        <div className="w-10 h-8 flex items-center justify-center border-t border-b border-gray-300">
-                          {item.quantity}
-                        </div>
-                        <button 
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md"
-                          aria-label="Aumentar quantidade"
-                        >
-                          +
-                        </button>
+          
+          {/* Special Items - Always show even with empty cart */}
+          {renderSpecialItemsSection()}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="md:col-span-2">
+            <Card className="p-6">
+              <h2 className="text-lg font-medium mb-4">Itens no carrinho</h2>
+              <div className="divide-y">
+                {items.map(item => (
+                  <div key={item.id} className="py-4 flex items-center">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <div className="ml-4 flex-grow">
+                      <h3 className="font-medium">{item.title}</h3>
+                      <p className="text-primary-foreground">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                          .format(item.price)}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <button 
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md"
+                        aria-label="Diminuir quantidade"
+                      >
+                        -
+                      </button>
+                      <div className="w-10 h-8 flex items-center justify-center border-t border-b border-gray-300">
+                        {item.quantity}
                       </div>
                       <button 
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="ml-4 text-gray-400 hover:text-red-500"
-                        aria-label="Remover item"
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md"
+                        aria-label="Aumentar quantidade"
                       >
-                        <Trash className="h-5 w-5" />
+                        +
                       </button>
                     </div>
-                  ))}
-                </div>
-              </Card>
-              
-              {/* Special Items Section - Now positioned here above the order summary */}
-              {renderSpecialItemsSection()}
-            </div>
+                    <button 
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="ml-4 text-gray-400 hover:text-red-500"
+                      aria-label="Remover item"
+                    >
+                      <Trash className="h-5 w-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Card>
             
-            {/* Order Summary - Now positioned after special items */}
-            <div className="md:col-span-1">
-              <Card className="p-6">
-                <h2 className="text-lg font-medium mb-4">Resumo do pedido</h2>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-                        .format(totalPrice)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Entrega</span>
-                    <span>Calculado no checkout</span>
-                  </div>
-                </div>
-                <div className="border-t pt-4 mb-6">
-                  <div className="flex justify-between font-medium">
-                    <span>Total</span>
-                    <span>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-                        .format(totalPrice)}
-                    </span>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleCheckout}
-                  variant="default"
-                  className="w-full"
-                >
-                  Finalizar Compra
-                </Button>
-              </Card>
-            </div>
+            {/* Special Items Section - Now positioned here above the order summary */}
+            {renderSpecialItemsSection()}
           </div>
-        )}
-      </div>
-    </Layout>
+          
+          {/* Order Summary - Now positioned after special items */}
+          <div className="md:col-span-1">
+            <Card className="p-6">
+              <h2 className="text-lg font-medium mb-4">Resumo do pedido</h2>
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                      .format(totalPrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Entrega</span>
+                  <span>Calculado no checkout</span>
+                </div>
+              </div>
+              <div className="border-t pt-4 mb-6">
+                <div className="flex justify-between font-medium">
+                  <span>Total</span>
+                  <span>
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                      .format(totalPrice)}
+                  </span>
+                </div>
+              </div>
+              <Button 
+                onClick={handleCheckout}
+                variant="default"
+                className="w-full"
+              >
+                Finalizar Compra
+              </Button>
+            </Card>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

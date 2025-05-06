@@ -37,7 +37,7 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
             <div 
               className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm
                 ${step.number === currentStep 
-                  ? 'bg-primary text-white font-medium' 
+                  ? 'bg-primary text-primary-foreground font-medium' 
                   : step.number < currentStep 
                     ? 'bg-gray-200 text-gray-600' 
                     : 'bg-gray-200 text-gray-600'
