@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Layout from '@/components/Layout/Layout';
 import ProductCard from '@/components/Products/ProductCard';
 import CategoryCard from '@/components/Products/CategoryCard';
 import ProductAddedNotification from '@/components/Cart/ProductAddedNotification';
@@ -48,20 +47,20 @@ const Home = () => {
   }, []);
 
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
-      <section className="bg-primary py-16 px-4 md:py-24 mb-12">
+      <section className="bg-gradient-to-r from-primary to-primary/70 py-16 px-4 md:py-24 mb-12">
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-3xl md:text-5xl font-playfair font-bold mb-4">
+            <h1 className="text-3xl md:text-5xl font-playfair font-bold mb-4 text-white">
               Flores para Todas as Ocasiões
             </h1>
-            <p className="text-lg md:text-xl max-w-2xl mb-8">
+            <p className="text-lg md:text-xl max-w-2xl mb-8 text-white/90">
               Entregamos emoções através de flores. Conheça nossos buquês e arranjos especiais.
             </p>
             <Link 
               to="/products" 
-              className="inline-block bg-white text-primary-foreground font-medium py-2.5 px-8 rounded-md hover:bg-gray-50 transition duration-200"
+              className="inline-block bg-white text-primary-foreground font-medium py-3 px-8 rounded-md hover:bg-gray-50 transition duration-200 shadow-md"
             >
               Ver Produtos
             </Link>
@@ -100,7 +99,7 @@ const Home = () => {
             </h2>
             <Link 
               to={`/category/${category.slug}`}
-              className="text-primary underline hover:text-primary-foreground transition"
+              className="text-primary-foreground underline hover:text-primary-foreground/80 transition"
             >
               Ver todos
             </Link>
@@ -150,7 +149,7 @@ const Home = () => {
       </section>
       
       <ProductAddedNotification />
-    </Layout>
+    </>
   );
 };
 

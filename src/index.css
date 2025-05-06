@@ -91,7 +91,7 @@
 
   /* Custom button styles */
   .btn-primary {
-    @apply bg-primary text-primary-foreground font-medium py-2.5 px-8 rounded-md hover:bg-opacity-90 transition duration-200;
+    @apply bg-primary text-white font-medium py-2.5 px-8 rounded-md hover:bg-primary-foreground transition duration-200 shadow-md;
   }
 
   .btn-outline {
@@ -119,5 +119,15 @@
   /* Font-family */
   .font-playfair {
     font-family: 'Playfair Display', serif;
+  }
+  
+  /* Button hover effects */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg;
   }
 }

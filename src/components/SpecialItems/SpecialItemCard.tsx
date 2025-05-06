@@ -56,7 +56,7 @@ const SpecialItemCard: React.FC<SpecialItemCardProps> = ({ item }) => {
             onClick={handleAddToCart}
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-8 w-8 bg-primary/10 hover:bg-primary/20 text-primary"
+            className="rounded-full h-8 w-8 bg-primary text-white hover:bg-primary-foreground hover:text-white shadow-sm"
           >
             <Plus className="h-4 w-4" />
             <span className="sr-only">Adicionar ao carrinho</span>

@@ -21,7 +21,7 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
         <Button 
           variant="ghost"
           asChild
-          className="text-gray-600 hover:text-gray-800 p-0"
+          className="text-primary-foreground hover:text-primary-foreground hover:bg-primary/10 p-0"
         >
           <Link to="/cart" className="flex items-center space-x-1">
             <ArrowLeft className="h-5 w-5" />
@@ -35,9 +35,9 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
         {steps.map((step) => (
           <div key={step.number} className="flex flex-col items-center">
             <div 
-              className={`w-12 h-12 rounded-full flex items-center justify-center 
+              className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm
                 ${step.number === currentStep 
-                  ? 'bg-primary text-primary-foreground font-medium' 
+                  ? 'bg-primary text-white font-medium' 
                   : step.number < currentStep 
                     ? 'bg-gray-200 text-gray-600' 
                     : 'bg-gray-200 text-gray-600'
