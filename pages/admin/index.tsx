@@ -107,7 +107,7 @@ const Admin = () => {
         </form>
         
         <div className="text-center text-sm text-gray-500">
-          <p>Credenciais de acesso: admin / admin@2025</p>
+
         </div>
       </div>
     </div>

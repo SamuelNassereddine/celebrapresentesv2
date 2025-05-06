@@ -25,12 +25,12 @@ const AdminLayout = ({ children, requiredRole = 'viewer' }: AdminLayoutProps) =>
       
       // Check if user has the required role
       if (requiredRole === 'master' && role !== 'master') {
-        navigate('/admin');
+        navigate('/admin/dashboard');
         return;
       }
       
       if (requiredRole === 'editor' && role !== 'master' && role !== 'editor') {
-        navigate('/admin');
+        navigate('/admin/dashboard');
         return;
       }
     }

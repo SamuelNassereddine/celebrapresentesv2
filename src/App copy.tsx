@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Index from '../pages/Index';
 import Home from '../pages/Home';
@@ -63,30 +64,27 @@ function App() {
                 <Route path="checkout/confirmation" element={<Confirmation />} />
               </Route>
               
-              {/* MODIFICADO: Rota para a tela de login administrativa */}
-              {/* O caminho foi alterado de "/admin" para "/admin/login" */}
-              <Route path="/admin/login" element={<AdminLogin />} />
+              {/* Rota para a tela de login administrativa */}
+  <Route path="/admin" element={<AdminLogin />} />
 
-              {/* MODIFICADO: Rotas administrativas protegidas (usando um layout) */}
-              {/* O caminho base foi alterado de "/admin/dashboard" para "/admin" */}
-              {/* Isso permite que as sub-rotas sejam acessadas como /admin/orders, /admin/settings, etc. */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} /> {/* Rota principal do admin, geralmente o dashboard. Acessível em /admin */}
-                <Route path="orders" element={<AdminOrders />} /> {/* Acessível em /admin/orders */}
-                <Route path="orders/:id" element={<AdminOrderDetail />} />
-                <Route path="products" element={<AdminProducts />} /> {/* Acessível em /admin/products */}
-                <Route path="products/new" element={<AdminProductForm />} />
-                <Route path="products/:id" element={<AdminProductForm />} />
-                <Route path="categories" element={<AdminCategories />} /> {/* Acessível em /admin/categories */}
-                <Route path="categories/new" element={<AdminCategoryForm />} />
-                <Route path="categories/:id" element={<AdminCategoryForm />} />
-                <Route path="special-items" element={<AdminSpecialItems />} /> {/* Acessível em /admin/special-items */}
-                <Route path="special-items/new" element={<AdminSpecialItemForm />} />
-                <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
-                <Route path="calendar" element={<AdminCalendar />} /> {/* Acessível em /admin/calendar */}
-                <Route path="settings" element={<AdminSettings />} /> {/* Acessível em /admin/settings */}
-                <Route path="users" element={<AdminUsers />} /> {/* Acessível em /admin/users */}
-              </Route>
+{/* Rotas administrativas protegidas (usando um layout) */}
+<Route path="/admin/dashboard" element={<AdminLayout />}>
+  <Route index element={<AdminDashboard />} /> {/* /admin/dashboard */}
+  <Route path="orders" element={<AdminOrders />} /> {/* /admin/dashboard/orders */}
+  <Route path="orders/:id" element={<AdminOrderDetail />} />
+  <Route path="products" element={<AdminProducts />} />
+  <Route path="products/new" element={<AdminProductForm />} />
+  <Route path="products/:id" element={<AdminProductForm />} />
+  <Route path="categories" element={<AdminCategories />} />
+  <Route path="categories/new" element={<AdminCategoryForm />} />
+  <Route path="categories/:id" element={<AdminCategoryForm />} />
+  <Route path="special-items" element={<AdminSpecialItems />} />
+  <Route path="special-items/new" element={<AdminSpecialItemForm />} />
+  <Route path="special-items/:id" element={<AdminSpecialItemForm />} />
+  <Route path="calendar" element={<AdminCalendar />} />
+  <Route path="settings" element={<AdminSettings />} />
+  <Route path="users" element={<AdminUsers />} />
+</Route>
               
               <Route path="*" element={<NotFound />} />
             </Routes>

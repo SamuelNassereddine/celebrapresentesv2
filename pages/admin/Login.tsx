@@ -31,7 +31,7 @@ const Login = () => {
       // Verificar se as credenciais são admin/admin@2025
       if (email === 'admin' && password === 'admin@2025') {
         await signIn(email, password);
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
         throw new Error('Credenciais inválidas. Use admin / admin@2025');
       }
@@ -47,8 +47,6 @@ const Login = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-gray-50">
       <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary">Flor & Cia</h1>
-          <p className="text-gray-500 mt-2">Área Administrativa</p>
         </div>
 
         {error && (
@@ -107,7 +105,7 @@ const Login = () => {
         </form>
         
         <div className="text-center text-sm text-gray-500">
-          <p>Credenciais de acesso: admin / admin@2025</p>
+
         </div>
       </div>
     </div>
