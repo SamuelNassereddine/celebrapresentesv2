@@ -293,7 +293,7 @@ const PaymentStep = () => {
       localStorage.removeItem('checkoutStep3Complete');
       
       // Open WhatsApp in a new tab
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${storeSettings.whatsappNumber}?text=${message}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${storeSettings.whatsappNumber}&text=${message}`;
       console.log('PaymentStep - Opening WhatsApp URL:', whatsappUrl);
       window.open(whatsappUrl, '_blank');
       

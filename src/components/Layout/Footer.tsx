@@ -134,7 +134,7 @@ const Footer = () => {
                 <li className="text-gray-600">
                   <span className="font-medium">WhatsApp:</span> 
                   <a 
-                    href={`https://wa.me/${settings.whatsapp_number}`}
+                    href={`https://api.whatsapp.com/send?phone=${settings.whatsapp_number}&text=Olá, vim do *catálogo* e gostaria de mais informações.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary-foreground ml-1"
