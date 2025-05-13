@@ -11,7 +11,7 @@ const steps = [
   { number: 1, name: 'Identificação' },
   { number: 2, name: 'Entrega' },
   { number: 3, name: 'Personalização' },
-  { number: 4, name: 'Pagamento' }
+  { number: 4, name: 'Finalização' }
 ];
 
 const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
