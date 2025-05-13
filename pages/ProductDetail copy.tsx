@@ -14,7 +14,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import React from 'react';
 
 type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
@@ -142,14 +141,7 @@ const ProductDetail = () => {
             
             <div className="mb-8">
               <h3 className="text-lg font-medium mb-2">Descrição</h3>
-              <p className="text-gray-600">
-  {product.description?.split('\n').map((paragraph, index) => (
-    <React.Fragment key={index}>
-      {paragraph}
-      {index < (product.description?.split('\n').length || 0) - 1 && <br />}
-    </React.Fragment>
-  ))}
-</p>
+              <p className="text-gray-600">{product.description}</p>
             </div>
             
             <div className="mb-8">
