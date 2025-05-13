@@ -107,7 +107,7 @@ const ProductDetail = () => {
                         <img 
                           src={image.url || '/placeholder.svg'} 
                           alt={`${product.title} - Imagem ${index + 1}`}
-                          className="w-full h-96 object-cover rounded-md"
+                          className="w-full h-96 object-cover rounded-md "
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = '/placeholder.svg';
                           }}
@@ -169,7 +169,7 @@ const ProductDetail = () => {
             <Button 
               onClick={handleAddToCart}
               variant="default"
-              className="w-full md:w-auto md:px-16"
+              className="w-full md:w-auto md:px-16 btn-primary"
             >
               Adicionar ao Carrinho
             </Button>
