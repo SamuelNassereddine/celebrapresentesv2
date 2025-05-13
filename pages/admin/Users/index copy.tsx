@@ -204,7 +204,7 @@ const Users = () => {
   };
 
   return (
-    <>
+    <AdminLayout requiredRole="master">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Usuários</h1>
         <Dialog open={isNewUserDialogOpen} onOpenChange={setIsNewUserDialogOpen}>
@@ -393,7 +393,7 @@ const Users = () => {
           </form>
         </DialogContent>
       </Dialog>
-    </>
+    </AdminLayout>
   );
 };
 

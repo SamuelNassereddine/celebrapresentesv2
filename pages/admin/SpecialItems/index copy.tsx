@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchSpecialItems, deleteSpecialItem } from '@/services/api';
 import AdminLayout from '../AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,89 +25,69 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 
-type Category = Database['public']['Tables']['categories']['Row'];
+type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
-const Categories = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
+const SpecialItems = () => {
+  const [items, setItems] = useState<SpecialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [filteredItems, setFilteredItems] = useState<SpecialItem[]>([]);
 
-  const fetchCategories = async () => {
+  const fetchItems = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-        
-      if (error) throw error;
-      
-      setCategories(data || []);
-      setFilteredCategories(data || []);
+      const data = await fetchSpecialItems();
+      setItems(data);
+      setFilteredItems(data);
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Erro ao carregar categorias');
+      console.error('Error fetching special items:', error);
+      toast.error('Erro ao carregar itens especiais');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchItems();
   }, []);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
-      setFilteredCategories(categories);
+      setFilteredItems(items);
     } else {
-      const filtered = categories.filter(category =>
-        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = items.filter(item =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredCategories(filtered);
+      setFilteredItems(filtered);
     }
-  }, [searchTerm, categories]);
+  }, [searchTerm, items]);
 
   const handleDelete = async (id: string) => {
     try {
-      // Check if there are products using this category
-      const { count, error: countError } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('category_id', id);
-      
-      if (countError) throw countError;
-      
-      if (count && count > 0) {
-        toast.error(`Não é possível excluir. Esta categoria possui ${count} produto(s) associado(s).`);
-        return;
+      const success = await deleteSpecialItem(id);
+      if (success) {
+        toast.success('Item especial excluído com sucesso');
+        fetchItems();
+      } else {
+        throw new Error('Falha ao excluir item');
       }
-      
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      toast.success('Categoria excluída com sucesso');
-      fetchCategories();
     } catch (error) {
-      console.error('Error deleting category:', error);
-      toast.error('Erro ao excluir categoria');
+      console.error('Error deleting special item:', error);
+      toast.error('Erro ao excluir item especial');
     }
   };
 
   return (
-    <>
+    <AdminLayout requiredRole="editor">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Categorias</h1>
+        <h1 className="text-2xl font-bold">Itens Especiais</h1>
         <Button asChild>
-          <Link to="/admin/categories/new">
+          <Link to="/admin/special-items/new">
             <Plus className="mr-2 h-4 w-4" />
-            Nova Categoria
+            Novo Item Especial
           </Link>
         </Button>
       </div>
@@ -118,7 +97,7 @@ const Categories = () => {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             type="search"
-            placeholder="Buscar categorias..."
+            placeholder="Buscar itens especiais..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,9 +109,9 @@ const Categories = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Ícone</TableHead>
+              <TableHead className="w-[100px]">Imagem</TableHead>
+              <TableHead>Título</TableHead>
+              <TableHead className="text-right">Preço</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -140,24 +119,35 @@ const Categories = () => {
             {loading ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Carregando categorias...
+                  Carregando itens especiais...
                 </TableCell>
               </TableRow>
-            ) : filteredCategories.length === 0 ? (
+            ) : filteredItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Nenhuma categoria encontrada
+                  Nenhum item especial encontrado
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCategories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.slug}</TableCell>
-                  <TableCell>{category.icon || '-'}</TableCell>
+              filteredItems.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <img 
+                      src={item.image_url} 
+                      alt={item.title} 
+                      className="h-12 w-12 object-cover rounded-md"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">{item.title}</TableCell>
+                  <TableCell className="text-right">
+                    {Number(item.price).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    })}
+                  </TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="ghost" size="icon" asChild>
-                      <Link to={`/admin/categories/${category.id}`}>
+                      <Link to={`/admin/special-items/${item.id}`}>
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Editar</span>
                       </Link>
@@ -174,13 +164,13 @@ const Categories = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Tem certeza que deseja excluir a categoria "{category.name}"? Esta ação não pode ser desfeita.
+                            Tem certeza que deseja excluir o item especial "{item.title}"? Esta ação não pode ser desfeita.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction 
-                            onClick={() => handleDelete(category.id)}
+                            onClick={() => handleDelete(item.id)}
                             className="bg-red-600 hover:bg-red-700"
                           >
                             Excluir
@@ -195,8 +185,8 @@ const Categories = () => {
           </TableBody>
         </Table>
       </div>
-    </>
+    </AdminLayout>
   );
 };
 
-export default Categories;
+export default SpecialItems;

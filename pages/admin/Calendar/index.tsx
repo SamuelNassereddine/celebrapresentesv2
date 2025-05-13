@@ -99,7 +99,7 @@ const CalendarView = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Calendário de Entregas</h1>
       </div>
@@ -298,7 +298,7 @@ const CalendarView = () => {
           )}
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 };
 

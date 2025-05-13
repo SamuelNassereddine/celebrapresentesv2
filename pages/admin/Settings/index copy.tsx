@@ -258,7 +258,7 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <>
+      <AdminLayout requiredRole="editor">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Configurações</h1>
         </div>
@@ -271,25 +271,25 @@ const Settings = () => {
             </div>
           ))}
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   if (!settings) {
     return (
-      <>
+      <AdminLayout requiredRole="editor">
         <div className="flex items-center justify-center h-[50vh]">
           <div className="text-center">
             <h2 className="text-xl font-bold">Configurações não encontradas</h2>
             <p className="mt-2">Não foi possível carregar as configurações da loja.</p>
           </div>
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   return (
-    <>
+    <AdminLayout requiredRole="editor">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Configurações</h1>
         <Button onClick={handleSubmit} disabled={saving}>
@@ -747,7 +747,7 @@ const Settings = () => {
           </div>
         </TabsContent>
       </Tabs>
-    </>
+    </AdminLayout>
   );
 };
 

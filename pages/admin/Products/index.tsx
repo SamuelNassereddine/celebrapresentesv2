@@ -103,7 +103,7 @@ const Products = () => {
   };
 
   return (
-    <AdminLayout requiredRole="editor">
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
         <Button asChild>
@@ -215,7 +215,7 @@ const Products = () => {
           </TableBody>
         </Table>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

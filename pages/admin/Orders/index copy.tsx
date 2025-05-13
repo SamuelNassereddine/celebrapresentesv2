@@ -130,7 +130,7 @@ const Orders = () => {
   };
 
   return (
-    <>
+    <AdminLayout>
       <div className="space-y-1 mb-8">
         <h1 className="text-2xl font-bold">Gerenciamento de Pedidos</h1>
         <p className="text-gray-500">Gerencie todos os pedidos e atualize seus status.</p>
@@ -230,7 +230,7 @@ const Orders = () => {
           </Table>
         </div>
       </div>
-    </>
+    </AdminLayout>
   );
 };
 
