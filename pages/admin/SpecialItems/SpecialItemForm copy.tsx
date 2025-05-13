@@ -155,7 +155,7 @@ const SpecialItemForm = () => {
   };
 
   return (
-    <>
+    <AdminLayout requiredRole="editor">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">
           {isEditing ? 'Editar Item Especial' : 'Novo Item Especial'}
@@ -297,7 +297,7 @@ const SpecialItemForm = () => {
           </form>
         </Form>
       </div>
-    </>
+    </AdminLayout>
   );
 };
 

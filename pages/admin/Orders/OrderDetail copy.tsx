@@ -143,29 +143,29 @@ const OrderDetail = () => {
 
   if (loading) {
     return (
-      <>
+      <AdminLayout>
         <div className="flex items-center justify-center h-64">
           <p className="text-gray-500">Carregando detalhes do pedido...</p>
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   if (!order) {
     return (
-      <>
+      <AdminLayout>
         <div className="flex flex-col items-center justify-center h-64 gap-4">
           <p className="text-gray-500">Pedido não encontrado</p>
           <Button asChild>
             <Link to="/admin/orders">Voltar para lista de pedidos</Link>
           </Button>
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   return (
-    <>
+    <AdminLayout>
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="sm" asChild className="flex items-center">
           <Link to="/admin/orders">
@@ -404,7 +404,7 @@ const OrderDetail = () => {
           </Card>
         </div>
       </div>
-    </>
+    </AdminLayout>
   );
 };
 

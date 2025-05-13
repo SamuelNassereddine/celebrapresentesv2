@@ -117,7 +117,7 @@ const CategoryForm = () => {
   };
 
   return (
-    <>
+    <AdminLayout requiredRole="editor">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <Button variant="ghost" onClick={() => navigate('/admin/categories')} className="mr-4">
@@ -189,7 +189,7 @@ const CategoryForm = () => {
           )}
         </CardContent>
       </Card>
-    </>
+    </AdminLayout>
   );
 };
 
