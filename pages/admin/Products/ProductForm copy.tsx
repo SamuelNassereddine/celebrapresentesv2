@@ -324,7 +324,7 @@ const ProductForm = () => {
   const [showImageForm, setShowImageForm] = useState(false);
 
   return (
-    <>
+    <AdminLayout requiredRole="editor">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <Button variant="ghost" onClick={() => navigate('/admin/products')} className="mr-4">
@@ -532,7 +532,7 @@ const ProductForm = () => {
           </Card>
         </div>
       </div>
-    </>
+    </AdminLayout>
   );
 };
 
