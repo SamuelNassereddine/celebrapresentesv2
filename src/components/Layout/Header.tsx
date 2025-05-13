@@ -123,7 +123,7 @@ const Header = () => {
             
             {storeSettings?.whatsapp_number && (
               <a 
-                href={`https://wa.me/${storeSettings.whatsapp_number}`} 
+                href={`https://api.whatsapp.com/send?phone=${storeSettings.whatsapp_number}&text=Olá, vim do *catálogo* e gostaria de mais informações.`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-700 hover:text-primary-foreground"
@@ -199,7 +199,7 @@ const Header = () => {
               <li>
                 {storeSettings?.whatsapp_number && (
                   <a 
-                    href={`https://wa.me/${storeSettings.whatsapp_number}`}
+                    href={`https://api.whatsapp.com/send?phone=${storeSettings.whatsapp_number}&text=Olá, vim do *catálogo* e gostaria de mais informações.`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="block text-gray-700 hover:text-primary-foreground"
@@ -228,7 +228,7 @@ const Header = () => {
           
           {storeSettings?.whatsapp_number ? (
             <a 
-              href={`https://wa.me/${storeSettings.whatsapp_number}`}
+              href={`https://api.whatsapp.com/send?phone=${storeSettings.whatsapp_number}&text=Olá, vim do *catálogo* e gostaria de mais informações.`}
               target="_blank" 
               rel="noopener noreferrer" 
               className="flex flex-col items-center"
