@@ -208,7 +208,7 @@ const Cart = () => {
               <Button 
                 onClick={handleCheckout}
                 variant="default"
-                className="w-full bg-[#f5c6d0] text-[#a62c47]"
+                className="w-full bg-[#f5c6d0] text-[#a62c47] btnbegincheckout"
               >
                 Finalizar Compra
               </Button>

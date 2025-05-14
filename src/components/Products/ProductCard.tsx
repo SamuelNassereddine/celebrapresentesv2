@@ -50,7 +50,7 @@ const ProductCard = ({ id, title, price, imageUrl }: ProductCardProps) => {
             <Button 
               onClick={handleQuickAddToCart}
               size="sm"
-              className="rounded-full w-10 h-10 p-0 bg-white text-black shadow-md"
+              className="rounded-full w-10 h-10 p-0 bg-white text-black shadow-md btnaddtocart"
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>

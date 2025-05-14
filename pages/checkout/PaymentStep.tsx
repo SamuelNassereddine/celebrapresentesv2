@@ -362,7 +362,7 @@ const PaymentStep = () => {
                     </p>
                     <Button 
                       onClick={handleWhatsAppCheckout}
-                      className="w-full md:w-auto bg-[#25D366] text-[#ffffff]"
+                      className="w-full md:w-auto bg-[#25D366] text-[#ffffff] btnpurchase"
                       disabled={isSubmitting}
 
                     >
