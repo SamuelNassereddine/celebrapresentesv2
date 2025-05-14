@@ -46,11 +46,11 @@ const ProductCard = ({ id, title, price, imageUrl }: ProductCardProps) => {
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
           
           {/* Quick add button */}
-          <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-3 right-3 opacity-100 group-hover:opacity-100 transition-opacity duration-300">
             <Button 
               onClick={handleQuickAddToCart}
               size="sm"
-              className="rounded-full w-10 h-10 p-0 bg-primary text-white hover:bg-primary-foreground hover:text-white shadow-md"
+              className="rounded-full w-10 h-10 p-0 bg-white text-black shadow-md"
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>
