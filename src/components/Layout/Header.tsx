@@ -56,10 +56,10 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm" style={{ paddingTop: '30px' }}>
+    <header className="sticky top-0 z-50 bg-white shadow-sm" style={{ paddingTop: '40px' }}>
 
  {/* Top Pink Reference Bar */}
- <div className="w-full bg-[#f5c6d0] flex justify-center items-center py-1 px-2 fixed top-0 left-0 right-0 z-50 border-b border-[#a62c47]/10">
+ <div className="w-full bg-[#C72C4B] flex justify-center items-center py-1 px-2 fixed top-0 left-0 right-0 z-50 border-b border-[#a62c47]/10">
         <div className="flex items-center gap-1 text-[#a62c47] font-semibold text-sm md:text-base tracking-wide select-none">
           <span className="flex text-yellow-400 mr-2">
             {Array(5)
@@ -70,7 +70,9 @@ const Header = () => {
                 </svg>
               ))}
           </span>
+          <p className="font-inter text-white text-sm text-center">
           Somos referência na Baixada Santista
+          </p>          
         </div>
       </div>
 
@@ -81,7 +83,7 @@ const Header = () => {
               <img 
                 src={storeSettings.logo_url} 
                 alt={storeSettings.name} 
-                className="h-10 object-contain"
+                className="h-15 object-contain"
                 onError={(e) => {
                   console.error("Failed to load logo:", storeSettings.logo_url);
                   (e.target as HTMLImageElement).style.display = 'none';
