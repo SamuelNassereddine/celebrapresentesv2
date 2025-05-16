@@ -266,7 +266,7 @@ const Header = () => {
                 {totalItems}
               </span>
             )}
-            <span className="text-xs text-gray-500">Carrinho</span>
+            <span className="text-xs text-gray-500">Sacola</span>
           </Link>
         </div>
       </div>

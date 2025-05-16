@@ -65,15 +65,15 @@ const CategoryPage = () => {
             <h1 className="text-3xl md:text-5xl font-inter font-semibold mb-2 text-[#a62c47]">
             Enviamos suas flores com um lindo cartão!
             </h1>
-            <p className="text-lg md:text-xl max-w-2xl mb-8 text-gray-700">
+            <p className="text-lg md:text-xl max-w-2xl mb-0 text-gray-700">
               Entregamos na praia grande e toda baixada santista.
             </p>
-            <Link 
+            {/* <Link 
               to="/products" 
               className="inline-block bg-white text-[#a62c47] font-medium py-3 px-8 rounded-md hover:bg-gray-50 transition duration-200 shadow-md border border-[#f5c6d0]"
             >
               Ver Produtos
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>
