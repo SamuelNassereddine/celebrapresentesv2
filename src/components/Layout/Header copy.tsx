@@ -71,12 +71,12 @@ const Header = () => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const nameElement = e.currentTarget.parentElement;
                   if (nameElement) {
-                    nameElement.innerHTML = `<span class="font-playfair text-2xl font-bold">${storeSettings.name || 'Flor & Cia'}</span>`;
+                    nameElement.innerHTML = `<span class="font-inter text-2xl font-bold">${storeSettings.name || 'Flor & Cia'}</span>`;
                   }
                 }}
               />
             ) : (
-              <span className="font-playfair text-2xl font-bold">
+              <span className="font-inter text-2xl font-bold">
                 {storeSettings?.name || 'Flor & Cia'}
               </span>
             )}

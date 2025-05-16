@@ -51,7 +51,7 @@ const Products = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-playfair font-semibold">Produtos</h1>
+          <h1 className="text-3xl font-inter font-semibold">Produtos</h1>
           
           <div className="flex items-center gap-2">
             {/* Search bar */}
@@ -80,7 +80,7 @@ const Products = () => {
         
         {/* Categories */}
         <div className="mb-6">
-          <h2 className="text-xl font-playfair font-medium mb-4">Categorias</h2>
+          <h2 className="text-xl font-inter font-medium mb-4">Categorias</h2>
           <div className="flex flex-nowrap overflow-x-auto pb-4 gap-2 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible">
             <button
               onClick={() => setSelectedCategory('all')}

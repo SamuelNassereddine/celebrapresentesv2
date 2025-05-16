@@ -52,7 +52,7 @@ const CategoryPage = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-playfair font-semibold">
+          <h1 className="text-3xl font-inter font-semibold">
             {loading ? <Skeleton className="h-10 w-48 mx-auto" /> : categoryName}
           </h1>
         </div>

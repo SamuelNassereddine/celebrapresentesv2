@@ -75,7 +75,7 @@ const Cart = () => {
   const renderSpecialItemsSection = () => {
     return (
       <section className="mb-8">
-        <h2 className="text-xl md:text-2xl font-playfair font-semibold mb-6">
+        <h2 className="text-xl md:text-2xl font-inter font-semibold mb-6">
           Adicione itens especiais ao seu pedido
         </h2>
         {loading ? (
@@ -103,7 +103,7 @@ const Cart = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-6">Seu Carrinho</h1>
+      <h1 className="text-2xl md:text-3xl font-inter font-semibold mb-6">Seu Carrinho</h1>
       
       {items.length === 0 ? (
         <div>

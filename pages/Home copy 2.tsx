@@ -49,14 +49,14 @@ const Home = () => {
   return (
     <>
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/70 py-16 px-4 md:py-24 mb-12">
+      <section className="hero-background-custom">
         <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-3xl md:text-5xl font-inter font-bold mb-4 text-white">
-              Flores para Todas as Ocasiões
+              Surpreenda alguém hoje!
             </h1>
             <p className="text-lg md:text-xl max-w-2xl mb-8 text-white/90">
-              Entregamos emoções através de flores. Conheça nossos buquês e arranjos especiais.
+              Entregamos na praia grande e toda baixada santista.
             </p>
             <Link 
               to="/products" 

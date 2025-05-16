@@ -440,7 +440,7 @@ const DeliveryStep = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-              <h2 className="text-2xl font-playfair font-semibold mb-6">Dados de Entrega</h2>
+              <h2 className="text-2xl font-inter font-semibold mb-6">Dados de Entrega</h2>
               
               <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
@@ -750,7 +750,7 @@ const DeliveryStep = () => {
           {/* Order Summary Section - Right column */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-              <h2 className="text-xl font-playfair font-semibold mb-4">Resumo do Pedido</h2>
+              <h2 className="text-xl font-inter font-semibold mb-4">Resumo do Pedido</h2>
               <p className="text-gray-500 text-sm mb-4">{items.length} itens no seu carrinho</p>
               
               <div className="space-y-4 mb-6">

@@ -133,7 +133,7 @@ const ProductDetail = () => {
           
           {/* Product Info */}
           <div>
-            <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-3">{product.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-inter font-semibold mb-3">{product.title}</h1>
             <p className="text-2xl text-primary-foreground font-semibold mb-6">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
                 .format(Number(product.price))}

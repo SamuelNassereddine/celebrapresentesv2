@@ -105,7 +105,7 @@ const CategoryPage = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex flex-col gap-2">
                 <Skeleton className="h-40 w-full rounded-md" />
@@ -115,7 +115,7 @@ const CategoryPage = () => {
             ))}
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard 
                 key={product.id} 

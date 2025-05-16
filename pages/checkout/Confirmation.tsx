@@ -26,7 +26,7 @@ const Confirmation = () => {
             <Check className="h-8 w-8 text-green-600" />
           </div>
           
-          <h1 className="text-2xl md:text-3xl font-playfair font-semibold mb-4">
+          <h1 className="text-2xl md:text-3xl font-inter font-semibold mb-4">
             Pedido Recebido!
           </h1>
           

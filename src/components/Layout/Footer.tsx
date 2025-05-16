@@ -54,7 +54,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-xl font-playfair font-semibold mb-4">
+            <h3 className="text-xl font-inter font-semibold mb-4">
               {settings?.name || 'Flor & Cia'}
             </h3>
             
@@ -88,7 +88,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-xl font-playfair font-semibold mb-4">Links Rápidos</h3>
+            <h3 className="text-xl font-inter font-semibold mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-600 hover:text-primary-foreground">
@@ -122,7 +122,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-xl font-playfair font-semibold mb-4">Contato</h3>
+            <h3 className="text-xl font-inter font-semibold mb-4">Contato</h3>
             <ul className="space-y-2">
               {settings?.store_email && (
                 <li className="text-gray-600">

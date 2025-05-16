@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
-import { ShoppingCart, Menu } from 'lucide-react';
+import { ShoppingCart , Menu, House, Flower2, MessageCircle, ShoppingBag } from 'lucide-react';
 import { fetchStoreSettings, fetchCategories } from '@/services/api';
 import { Database } from '@/integrations/supabase/types';
 
@@ -57,7 +56,24 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 bg-white shadow-sm" style={{ paddingTop: '30px' }}>
+
+ {/* Top Pink Reference Bar */}
+ <div className="w-full bg-[#f5c6d0] flex justify-center items-center py-1 px-2 fixed top-0 left-0 right-0 z-50 border-b border-[#a62c47]/10">
+        <div className="flex items-center gap-1 text-[#a62c47] font-semibold text-sm md:text-base tracking-wide select-none">
+          <span className="flex text-yellow-400 mr-2">
+            {Array(5)
+              .fill(0)
+              .map((_, i) => (
+                <svg key={i} className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <polygon points="10,1.5 12.4,7.3 18.7,7.6 13.8,11.8 15.6,18 10,14.5 4.4,18 6.2,11.8 1.3,7.6 7.6,7.3" />
+                </svg>
+              ))}
+          </span>
+          Somos referência na Baixada Santista
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
@@ -133,7 +149,7 @@ const Header = () => {
             )}
             
             <Link to="/cart" className="relative">
-              <ShoppingCart className="h-5 w-5 text-gray-700" />
+              <ShoppingBag className="h-5 w-5 text-gray-700" />
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#ff0000] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {totalItems}
@@ -145,7 +161,7 @@ const Header = () => {
           {/* Mobile Navigation Trigger */}
           <div className="flex items-center space-x-4 md:hidden">
             <Link to="/cart" className="relative">
-              <ShoppingCart className="h-5 w-5 text-gray-700" />
+              <ShoppingBag className="h-5 w-5 text-gray-700" />
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#ff0000] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {totalItems}
@@ -214,15 +230,15 @@ const Header = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden pb-4">
         <div className="flex items-center justify-around py-2">
           <Link to="/" className="flex flex-col items-center">
-            <span className="text-gray-500">🏠</span>
+          <House className="h-5 w-5 text-gray-500" />
             <span className="text-xs text-gray-500">Início</span>
           </Link>
           
           <Link to="/products" className="flex flex-col items-center">
-            <span className="text-gray-500">🌸</span>
+          <Flower2 className="h-5 w-5 text-gray-500" />
             <span className="text-xs text-gray-500">Produtos</span>
           </Link>
           
@@ -233,18 +249,18 @@ const Header = () => {
               rel="noopener noreferrer" 
               className="flex flex-col items-center"
             >
-              <span className="text-gray-500">💬</span>
+              <MessageCircle className="h-5 w-5 text-gray-500" />
               <span className="text-xs text-gray-500">WhatsApp</span>
             </a>
           ) : (
             <div className="flex flex-col items-center">
-              <span className="text-gray-500">💬</span>
+              <MessageCircle className="h-5 w-5 text-gray-500" />
               <span className="text-xs text-gray-500">WhatsApp</span>
             </div>
           )}
           
           <Link to="/cart" className="flex flex-col items-center relative">
-            <span className="text-gray-500">🛒</span>
+          <ShoppingBag className="h-5 w-5 text-gray-500" />
             {totalItems > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary-foreground text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 {totalItems}

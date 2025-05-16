@@ -1,67 +1,42 @@
-
 import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useCart } from '@/context/CartContext';
-import { useToast } from '@/hooks/use-toast';
+import { Truck } from 'lucide-react';
 
 interface ProductCardProps {
   id: string;
   title: string;
   price: number;
   imageUrl: string;
+  slug: string;
 }
 
-const ProductCard = ({ id, title, price, imageUrl }: ProductCardProps) => {
-  const { addItem } = useCart();
-  const { toast } = useToast();
-
-  const handleQuickAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    addItem({
-      id,
-      title,
-      price,
-      quantity: 1,
-      image: imageUrl
-    });
-    
-    toast({
-      title: "Produto adicionado",
-      description: `${title} foi adicionado ao seu carrinho`,
-    });
-  };
-
+const ProductCard = ({ id, title, price, imageUrl, slug }: ProductCardProps) => {
   return (
-    <Link to={`/product/${id}`} className="group block">
-      <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition duration-300 h-full flex flex-col">
-        <div className="aspect-square overflow-hidden relative">
-          <img 
-            src={imageUrl} 
+    <Link
+      to={`/product/${id}`}
+      className="block group focus:outline-none"
+      tabIndex={0}
+      aria-label={`Ver detalhes de ${title}`}
+    >
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200 cursor-pointer flex flex-col pb-0 animate-fade-in min-h-80">
+        <div className="aspect-square bg-gray-100">
+          <img
+            src={imageUrl}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
           />
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
-          
-          {/* Quick add button */}
-          <div className="absolute bottom-3 right-3 opacity-100 group-hover:opacity-100 transition-opacity duration-300">
-            <Button 
-              onClick={handleQuickAddToCart}
-              size="sm"
-              className="rounded-full w-10 h-10 p-0 bg-white text-black shadow-md btnaddtocart"
-            >
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-          </div>
         </div>
-        <div className="p-4 flex flex-col flex-grow">
-          <h3 className="text-gray-800 font-medium text-lg mb-1 line-clamp-2 h-14">{title}</h3>
-          <p className="text-primary-foreground font-semibold mt-auto">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-              .format(price)}
-          </p>
+        <div className="flex-1 flex flex-col justify-between px-4 py-3">
+          <h3 className="font-semibold text-base text-gray-900 mb-1 truncate">{title}</h3>
+          <div className="flex items-center justify-between gap-2 mt-1">
+            <div className="flex items-center gap-1 text-gray-700 text-xs font-medium">
+              <Truck className="h-4 w-4 text-[#a62c47]" />
+              <span>Entrega Rápida no mesmo dia!</span>
+            </div>
+            <span className="inline-block text-green-700 font-bold text-lg bg-gray-50 px-2 py-1 rounded">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)}
+            </span>
+          </div>
         </div>
       </div>
     </Link>

@@ -169,7 +169,7 @@ const PersonalizationStep = () => {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-            <h2 className="text-2xl font-playfair font-semibold mb-6">Personalização</h2>
+            <h2 className="text-2xl font-inter font-semibold mb-6">Personalização</h2>
             
             <div className="space-y-6">
               <div>

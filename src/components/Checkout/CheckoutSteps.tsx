@@ -28,7 +28,7 @@ const CheckoutSteps = ({ currentStep }: CheckoutStepsProps) => {
             <span>Voltar para o carrinho</span>
           </Link>
         </Button>
-        <h1 className="text-2xl md:text-3xl font-playfair font-semibold">Checkout</h1>
+        <h1 className="text-2xl md:text-3xl font-inter font-semibold">Checkout</h1>
       </div>
       
       <div className="mt-8 flex justify-between">

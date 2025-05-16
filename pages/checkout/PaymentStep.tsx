@@ -325,7 +325,7 @@ const PaymentStep = () => {
         <CheckoutSteps currentStep={4} />
         
         <div className="bg-white rounded-lg shadow-sm p-6 md:p-8">
-          <h2 className="text-2xl font-playfair font-semibold mb-6">Pagamento</h2>
+          <h2 className="text-2xl font-inter font-semibold mb-6">Pagamento</h2>
           
           {error && (
             <Alert variant="destructive" className="mb-6">

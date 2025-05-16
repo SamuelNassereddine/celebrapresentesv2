@@ -26,8 +26,8 @@ const CategoryCard = ({ id, name, slug, icon }: CategoryCardProps) => {
   };
 
   return (
-    <Link to={`/category/${slug}`} className="block">
-      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex flex-col items-center">
+    <Link to={`/category/${slug}`} className="flex w-full">
+      <div className="bg-white rounded-lg p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex flex-col items-center w-full">
         {getIcon()}
         <h3 className="text-gray-800 font-medium text-lg mt-3 text-center">
           {name}
