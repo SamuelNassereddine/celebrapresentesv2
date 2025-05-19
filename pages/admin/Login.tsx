@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -18,25 +17,19 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!email || !password) {
       setError('Por favor, preencha todos os campos.');
       return;
     }
-    
     setLoading(true);
     setError(null);
-    
     try {
-      // Verificar se as credenciais são admin/admin@2025
-      if (email === 'admin' && password === 'admin@2025') {
-        await signIn(email, password);
-        navigate('/admin/dashboard');
-      } else {
-        throw new Error('Credenciais inválidas. Use admin / admin@2025');
-      }
+      // Chama o signIn do contexto, que agora valida no Supabase
+      await signIn(email, password);
+      // Redireciona para a dashboard admin após login bem-sucedido
+      navigate('/admin');
     } catch (err: any) {
-      console.error("Erro de login:", err);
+      // Exibe mensagem de erro caso as credenciais estejam incorretas
       setError(err.message || 'Ocorreu um erro ao realizar o login.');
     } finally {
       setLoading(false);

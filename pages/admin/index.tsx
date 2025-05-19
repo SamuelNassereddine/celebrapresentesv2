@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -18,22 +17,15 @@ const Admin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!email || !password) {
       setError('Por favor, preencha todos os campos.');
       return;
     }
-    
     setLoading(true);
     setError(null);
-    
     try {
-      if (email === 'admin' && password === 'admin@2025') {
-        await signIn(email, password);
-        navigate('/');
-      } else {
-        throw new Error('Error');
-      }
+      await signIn(email, password);
+      navigate('/admin');
     } catch (err: any) {
       console.error("Erro de login:", err);
       setError(err.message || 'Ocorreu um erro ao realizar o login.');

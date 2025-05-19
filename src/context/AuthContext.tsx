@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,36 +77,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    
     try {
-      // Aceita apenas admin/admin@2025
-      if (email === 'admin' && password === 'admin@2025') {
-        console.log("Login attempt with correct credentials");
-        // Autenticar no Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: 'admin@example.com',
-          password: 'admin@2025',
-        });
-        
-        if (error) {
-          console.error("Supabase auth error:", error);
-          throw error;
-        }
-        
-        console.log("Authentication successful, session:", data.session?.user?.id);
-        
-        // Definir o usuário como admin com role 'master'
-        setUser({ email: 'admin' });
-        setRole('master'); // Garantindo que o role é sempre 'master'
-        
-        toast.success('Login realizado com sucesso');
-        return;
-      } else {
-        console.log("Invalid login credentials");
+      // Consulta simples na tabela admin_users_v2 para validar e-mail e senha
+      // ATENÇÃO: Senha em texto puro, ideal seria hash em produção
+      const { data, error } = await supabase
+        .from('admin_users_v2')
+        .select('*')
+        .eq('email', email)
+        .eq('senha', password)
+        .single(); // Espera encontrar apenas um usuário
+
+      if (error || !data) {
+        // Se não encontrar usuário, lança erro
         throw new Error('Credenciais inválidas');
       }
+
+      // Após autenticar, buscar o role do usuário na tabela admin_users
+      const { data: userRoleData, error: userRoleError } = await supabase
+        .from('admin_users')
+        .select('role')
+        .eq('email', email)
+        .single();
+
+      // Se não encontrar role, define como null
+      const userRole = userRoleData?.role || null;
+
+      // Usuário autenticado com sucesso
+      // Define o usuário autenticado no estado local, incluindo o role
+      setUser({ email: data.email });
+      setRole(userRole); // Agora o role é preenchido corretamente
+      toast.success('Login realizado com sucesso');
+      return;
     } catch (error: any) {
-      console.error('🔐 Error signing in:', error);
+      // Em caso de erro, limpa o estado e repassa o erro
       setUser(null);
       setRole(null);
       throw error;

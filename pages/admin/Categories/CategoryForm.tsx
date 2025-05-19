@@ -20,6 +20,8 @@ const CategoryForm = () => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [icon, setIcon] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
   
   const iconOptions = [
     { value: 'gift', label: 'Presente' },
@@ -46,6 +48,7 @@ const CategoryForm = () => {
           setName(data.name);
           setSlug(data.slug);
           setIcon(data.icon || '');
+          setImageUrl(data.image_url || '');
         }
       } catch (error) {
         console.error('Error fetching category:', error);
@@ -73,6 +76,11 @@ const CategoryForm = () => {
     }
   };
   
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -83,6 +91,25 @@ const CategoryForm = () => {
     
     setSaving(true);
     try {
+      let uploadedImageUrl = imageUrl;
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `category_${slug}_${Date.now()}.${fileExt}`;
+        // Log para depuração
+        console.log('Iniciando upload da imagem:', fileName, imageFile);
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('categories')
+          .upload(fileName, imageFile, { upsert: true });
+        if (uploadError) {
+          // Log e exibe erro detalhado
+          console.error('Erro ao fazer upload da imagem:', uploadError.message);
+          toast.error(`Erro ao fazer upload da imagem: ${uploadError.message}`);
+          setSaving(false);
+          return;
+        }
+        uploadedImageUrl = `${supabase.storage.from('categories').getPublicUrl(fileName).data.publicUrl}`;
+        console.log('Upload realizado com sucesso. URL:', uploadedImageUrl);
+      }
       let response;
       
       if (isEditing) {
@@ -92,13 +119,14 @@ const CategoryForm = () => {
             name, 
             slug, 
             icon,
+            image_url: uploadedImageUrl,
             updated_at: new Date().toISOString()
           })
           .eq('id', id);
       } else {
         response = await supabase
           .from('categories')
-          .insert({ name, slug, icon });
+          .insert({ name, slug, icon, image_url: uploadedImageUrl });
       }
       
       if (response.error) {
@@ -176,6 +204,24 @@ const CategoryForm = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="image">Imagem</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={saving}
+                />
+                {(imageFile || imageUrl) && (
+                  <img
+                    src={imageFile ? URL.createObjectURL(imageFile) : imageUrl}
+                    alt="Pré-visualização da imagem"
+                    className="h-24 mt-2 rounded border object-contain"
+                  />
+                )}
               </div>
               
               <div className="flex justify-end">
