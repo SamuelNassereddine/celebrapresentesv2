@@ -155,6 +155,7 @@ const Products = () => {
             title={product.title}
             price={Number(product.price)}
             imageUrl={product.images[0]?.url || '/placeholder.svg'}
+            slug={product.slug}
           />
         ))}
       </div>

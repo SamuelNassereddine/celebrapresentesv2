@@ -103,7 +103,6 @@ const Cart = () => {
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
                       .format(Number(item.price))}
                   </div>
-                  {/* Botão selecionar ou lógica de ação poderia ser colocada aqui */}
                   <Button
                     size="sm"
                     className="mt-1 bg-[#f5c6d0] text-[#a62c47] rounded-full"
@@ -113,7 +112,7 @@ const Cart = () => {
                   </Button>
                 </div>
                 <img
-                  src={item.image || '/placeholder.svg'}
+                  src={item.image_url || '/placeholder.svg'}
                   alt={item.title}
                   className="ml-3 w-16 h-16 object-cover rounded"
                 />

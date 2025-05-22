@@ -122,7 +122,8 @@ const CategoryPage = () => {
                 id={product.id} 
                 title={product.title} 
                 price={product.price} 
-                imageUrl={product.images?.[0]?.url || '/placeholder.svg'} 
+                imageUrl={product.images?.[0]?.url || '/placeholder.svg'}
+                slug={product.slug}
               />
             ))}
           </div>
