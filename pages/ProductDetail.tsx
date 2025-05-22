@@ -21,7 +21,7 @@ type ProductWithImages = Database['public']['Tables']['products']['Row'] & {
 };
 
 const ProductDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<ProductWithImages | null>(null);
@@ -31,11 +31,12 @@ const ProductDetail = () => {
   
   useEffect(() => {
     const loadProduct = async () => {
-      if (!id) return;
+      if (!slug) return;
       
       setLoading(true);
       try {
-        const productData = await fetchProductById(id);
+        // Novo: Buscar o produto pelo slug (você pode usar ou criar fetchProductBySlug no api)
+        const productData = await fetchProductById(slug);
         setProduct(productData);
       } catch (error) {
         console.error("Error loading product:", error);
@@ -50,7 +51,7 @@ const ProductDetail = () => {
     };
     
     loadProduct();
-  }, [id, toast]);
+  }, [slug, toast]);
   
   if (loading) {
     return (

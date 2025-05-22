@@ -14,7 +14,7 @@ type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  const { items, removeItem, updateQuantity, totalPrice, addItem } = useCart();
   const [specialItems, setSpecialItems] = useState<SpecialItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +106,15 @@ const Cart = () => {
                   <Button
                     size="sm"
                     className="mt-1 bg-[#f5c6d0] text-[#a62c47] rounded-full"
-                    onClick={() => {/* lógica de adicionar ao carrinho */}}
+                    onClick={() => {
+                      addItem({
+                        id: `special-${item.id}`,
+                        title: item.title,
+                        price: Number(item.price),
+                        quantity: 1,
+                        image: item.image_url,
+                      });
+                    }}
                   >
                     Selecionar
                   </Button>
