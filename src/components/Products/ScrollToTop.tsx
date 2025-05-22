@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -6,21 +7,20 @@ import { useLocation } from "react-router-dom";
  * sempre que a rota muda (quando o location.pathname muda).
  * 
  * Coloque este componente no topo da sua hierarquia de componentes,
- * logo após o Router.
+ * logo após o Router, para garantir que nas trocas de página o scroll vai para o topo.
  */
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Rola para o topo suavemente quando a rota muda
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "smooth" // Para uma rolagem suave
+      behavior: "smooth"
     });
   }, [pathname]);
 
-  return null; // Este componente não renderiza nada
+  return null;
 };
 
 export default ScrollToTop;

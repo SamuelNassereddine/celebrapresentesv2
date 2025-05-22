@@ -16,6 +16,7 @@ import DeliveryStep from '../pages/checkout/DeliveryStep';
 import PersonalizationStep from '../pages/checkout/PersonalizationStep';
 import PaymentStep from '../pages/checkout/PaymentStep';
 import Confirmation from '../pages/checkout/Confirmation';
+import ScrollToTop from './components/Products/ScrollToTop';
 
 // Admin routes
 import AdminLayout from '../pages/admin/AdminLayout';
@@ -49,6 +50,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <Router>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />}>
                 <Route index element={<Home />} />

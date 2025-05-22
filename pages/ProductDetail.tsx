@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -15,6 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import React from 'react';
+import FixedActionBar from '@/components/Common/FixedActionBar';
 
 type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
@@ -75,6 +75,8 @@ const ProductDetail = () => {
     );
   }
   
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+
   const handleAddToCart = () => {
     addItem({
       id: product.id,
@@ -93,8 +95,13 @@ const ProductDetail = () => {
   // Determine if we should show a carousel or single image
   const hasMultipleImages = product.images && product.images.length > 1;
   
+  // Cálculo do carrinho atual (poderia vir do contexto/cart, mas ilustramos localmente)
+  // Ajuste se quiser fetch atual do Cart.
+  const total = Number(product.price) * quantity;
+
+  // Exibe botão fixo apenas no mobile
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-28 md:pb-8">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image - Carousel or Single Image */}
@@ -177,7 +184,7 @@ const ProductDetail = () => {
             <Button 
               onClick={handleAddToCart}
               variant="default"
-              className="w-full md:w-auto md:px-16 btn-primary"
+              className="hidden md:block w-full md:w-auto md:px-16 btn-primary"
             >
               Adicionar ao Carrinho
             </Button>
@@ -185,6 +192,13 @@ const ProductDetail = () => {
         </div>
       </div>
       
+      {/* Botão fixo mobile */}
+      <FixedActionBar
+        total={total}
+        quantity={quantity}
+        buttonLabel="Adicionar ao Carrinho"
+        onButtonClick={handleAddToCart}
+      />
       <ProductAddedNotification />
     </div>
   );

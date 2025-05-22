@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -9,6 +8,7 @@ import { Database } from '@/integrations/supabase/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import FixedActionBar from '@/components/Common/FixedActionBar';
 
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
@@ -91,9 +91,33 @@ const Cart = () => {
             Nenhum item especial disponível no momento.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6">
             {specialItems.map((item) => (
-              <SpecialItemCard key={item.id} item={item} />
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm animate-fade-in"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{item.title}</div>
+                  <div className="text-sm text-gray-600 mb-1">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+                      .format(Number(item.price))}
+                  </div>
+                  {/* Botão selecionar ou lógica de ação poderia ser colocada aqui */}
+                  <Button
+                    size="sm"
+                    className="mt-1 bg-[#f5c6d0] text-[#a62c47] rounded-full"
+                    onClick={() => {/* lógica de adicionar ao carrinho */}}
+                  >
+                    Selecionar
+                  </Button>
+                </div>
+                <img
+                  src={item.image || '/placeholder.svg'}
+                  alt={item.title}
+                  className="ml-3 w-16 h-16 object-cover rounded"
+                />
+              </div>
             ))}
           </div>
         )}
@@ -102,7 +126,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 pt-8 pb-28 md:pb-8">
       <h1 className="text-2xl md:text-3xl font-inter font-semibold mb-6">Seu Carrinho</h1>
       
       {items.length === 0 ? (
@@ -183,7 +207,7 @@ const Cart = () => {
           </div>
           
           {/* Order Summary - Now positioned after special items */}
-          <div className="md:col-span-1">
+          <div className="md:col-span-1 hidden md:block">
             <Card className="p-6">
               <h2 className="text-lg font-medium mb-4">Resumo do pedido</h2>
               <div className="space-y-2 mb-4">
@@ -210,11 +234,21 @@ const Cart = () => {
                 variant="default"
                 className="w-full bg-[#f5c6d0] text-[#a62c47] btnbegincheckout"
               >
-                Finalizar Compra
+                Continuar
               </Button>
             </Card>
           </div>
         </div>
+      )}
+
+      {/* Barra fixa mobile só aparece se houver itens */}
+      {items.length > 0 && (
+        <FixedActionBar
+          total={totalPrice}
+          quantity={items.reduce((acc, el) => acc + el.quantity, 0)}
+          buttonLabel="Continuar"
+          onButtonClick={handleCheckout}
+        />
       )}
     </div>
   );

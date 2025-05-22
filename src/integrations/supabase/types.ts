@@ -33,33 +33,54 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_users_v2: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          senha: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          senha: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          senha?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
           icon: string | null
           id: string
+          image_url: string | null
           name: string
           slug: string
           updated_at: string | null
-          image_url?: string | null
         }
         Insert: {
           created_at?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
           name: string
           slug: string
           updated_at?: string | null
-          image_url?: string | null
         }
         Update: {
           created_at?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           slug?: string
           updated_at?: string | null
-          image_url?: string | null
         }
         Relationships: []
       }
@@ -266,6 +287,7 @@ export type Database = {
           description: string | null
           id: string
           price: number
+          slug: string | null
           title: string
           updated_at: string | null
         }
@@ -275,6 +297,7 @@ export type Database = {
           description?: string | null
           id?: string
           price: number
+          slug?: string | null
           title: string
           updated_at?: string | null
         }
@@ -284,6 +307,7 @@ export type Database = {
           description?: string | null
           id?: string
           price?: number
+          slug?: string | null
           title?: string
           updated_at?: string | null
         }
