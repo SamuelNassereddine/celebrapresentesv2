@@ -1,4 +1,3 @@
-
 import { useEffect, useState, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Save, Trash2, Upload, Image, FileImage } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { uploadProductImage, deleteProductImageFromStorage } from '@/services/api';
+import { generateSlug, isValidSlug } from '@/utils/slugUtils';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 type ProductImage = Database['public']['Tables']['product_images']['Row'];
@@ -34,6 +34,7 @@ const ProductForm = () => {
   
   // Product fields
   const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -81,6 +82,7 @@ const ProductForm = () => {
         
         if (product) {
           setTitle(product.title);
+          setSlug(product.slug || '');
           setDescription(product.description || '');
           setPrice(String(product.price));
           setCategoryId(product.category_id || '');
@@ -106,6 +108,60 @@ const ProductForm = () => {
     
     fetchProduct();
   }, [id, isEditing]);
+
+  // Auto-generate slug when title changes
+  useEffect(() => {
+    if (title && !isEditing) {
+      const generatedSlug = generateSlug(title);
+      setSlug(generatedSlug);
+    }
+  }, [title, isEditing]);
+
+  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+  };
+
+  const handleSlugChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newSlug = e.target.value;
+    setSlug(newSlug);
+  };
+
+  const validateSlug = async (slugToValidate: string): Promise<boolean> => {
+    if (!slugToValidate) {
+      toast.error('Slug é obrigatório');
+      return false;
+    }
+
+    if (!isValidSlug(slugToValidate)) {
+      toast.error('Slug deve conter apenas letras minúsculas, números e hífens');
+      return false;
+    }
+
+    // Check if slug already exists (only for new products or when slug is different in edit mode)
+    if (!isEditing || (isEditing && slugToValidate !== slug)) {
+      const { data: existingProduct, error } = await supabase
+        .from('products')
+        .select('id')
+        .eq('slug', slugToValidate)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking slug:', error);
+        toast.error('Erro ao verificar slug');
+        return false;
+      }
+
+      if (existingProduct) {
+        toast.error('Este slug já está sendo usado por outro produto');
+        return false;
+      }
+    }
+
+    return true;
+  };
+  
+  // ... keep existing code (handleFileChange, removeImageFile, setPrimaryImage, uploadImages functions)
   
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -185,14 +241,20 @@ const ProductForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || !price || !categoryId) {
-      toast.error('Título, preço e categoria são obrigatórios');
+    if (!title || !price || !categoryId || !slug) {
+      toast.error('Título, preço, categoria e slug são obrigatórios');
       return;
     }
     
     const priceValue = parseFloat(price.replace(',', '.'));
     if (isNaN(priceValue) || priceValue <= 0) {
       toast.error('Preço deve ser um valor positivo');
+      return;
+    }
+
+    // Validate slug
+    const isSlugValid = await validateSlug(slug);
+    if (!isSlugValid) {
       return;
     }
     
@@ -205,6 +267,7 @@ const ProductForm = () => {
           .from('products')
           .update({ 
             title, 
+            slug,
             description, 
             price: priceValue, 
             category_id: categoryId,
@@ -221,6 +284,7 @@ const ProductForm = () => {
           .from('products')
           .insert({ 
             title, 
+            slug,
             description, 
             price: priceValue, 
             category_id: categoryId 
@@ -265,6 +329,8 @@ const ProductForm = () => {
       setSaving(false);
     }
   };
+  
+  // ... keep existing code (handleAddImage, handleDeleteImage, handleSetPrimaryImage functions)
   
   const handleAddImage = async () => {
     // Esse método não é mais necessário, substituído por upload de arquivo
@@ -350,10 +416,29 @@ const ProductForm = () => {
                     <Input
                       id="title"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={handleTitleChange}
                       placeholder="Título do produto"
                       required
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="slug">Slug *</Label>
+                    <Input
+                      id="slug"
+                      value={slug}
+                      onChange={handleSlugChange}
+                      placeholder="slug-do-produto"
+                      required
+                    />
+                    <p className="text-sm text-gray-500">
+                      O slug será usado na URL do produto. Use apenas letras minúsculas, números e hífens.
+                      {title && !isEditing && (
+                        <span className="block mt-1 text-green-600">
+                          Sugestão: {generateSlug(title)}
+                        </span>
+                      )}
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
