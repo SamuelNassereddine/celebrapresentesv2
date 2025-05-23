@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
-import { ShoppingCart, Trash } from 'lucide-react';
+import { ShoppingCart, Trash, Plus } from 'lucide-react';
 import { fetchSpecialItems } from '@/services/api';
 import SpecialItemCard from '@/components/SpecialItems/SpecialItemCard';
 import { Database } from '@/integrations/supabase/types';
@@ -91,21 +91,35 @@ const Cart = () => {
             Nenhum item especial disponível no momento.
           </div>
         ) : (
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6">
+          <div className="flex flex-col gap-3 md:grid md:grid-cols-1 md:gap-6">
             {specialItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm animate-fade-in"
+                className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm animate-fade-in"
               >
-                <div className="flex-1 min-w-0">
+                {/* Coluna 1: Título e Preço (50% da largura) */}
+                <div className="flex-1 min-w-0" style={{ flex: '0 0 50%' }}>
                   <div className="font-medium truncate">{item.title}</div>
-                  <div className="text-sm text-gray-600 mb-1">
+                  <div className="text-sm text-gray-600">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
                       .format(Number(item.price))}
                   </div>
+                </div>
+                
+                {/* Coluna 2: Imagem (35% da largura) */}
+                <div className="flex justify-center" style={{ flex: '0 0 35%' }}>
+                  <img
+                    src={item.image_url || '/placeholder.svg'}
+                    alt={item.title}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                </div>
+                
+                {/* Coluna 3: Botão + (15% da largura) */}
+                <div className="flex justify-center" style={{ flex: '0 0 15%' }}>
                   <Button
                     size="sm"
-                    className="mt-1 bg-[#f5c6d0] text-[#a62c47] rounded-full"
+                    className="w-8 h-8 p-0 bg-[#f5c6d0] text-[#a62c47] rounded-full hover:bg-[#f5c6d0]/80 flex items-center justify-center"
                     onClick={() => {
                       addItem({
                         id: `special-${item.id}`,
@@ -116,14 +130,9 @@ const Cart = () => {
                       });
                     }}
                   >
-                    Selecionar
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <img
-                  src={item.image_url || '/placeholder.svg'}
-                  alt={item.title}
-                  className="ml-3 w-16 h-16 object-cover rounded"
-                />
               </div>
             ))}
           </div>
