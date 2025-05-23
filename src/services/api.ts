@@ -9,6 +9,12 @@ type DeliveryTimeSlot = Database['public']['Tables']['delivery_time_slots']['Row
 type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
 type SpecialItem = Database['public']['Tables']['special_items']['Row'];
 
+// Helper function to detect if a string is a valid UUID
+const isUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export const fetchStoreSettings = async (): Promise<StoreSettings | null> => {
   console.log("fetchStoreSettings - Starting fetch");
   try {
@@ -72,11 +78,24 @@ export const fetchProducts = async (): Promise<(Product & { images: ProductImage
   }));
 };
 
-export const fetchProductById = async (id: string): Promise<(Product & { images: ProductImage[] }) | null> => {
+/**
+ * Fetch a product by ID (UUID) or slug
+ * @param idOrSlug - Product ID (UUID format) or product slug
+ * @returns Product with images or null if not found
+ */
+export const fetchProductById = async (idOrSlug: string): Promise<(Product & { images: ProductImage[] }) | null> => {
+  console.log('fetchProductById - Input:', idOrSlug);
+  
+  // Detect if input is UUID or slug
+  const searchByUUID = isUUID(idOrSlug);
+  const searchField = searchByUUID ? 'id' : 'slug';
+  
+  console.log('fetchProductById - Searching by:', searchField);
+  
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('*')
-    .eq('id', id)
+    .eq(searchField, idOrSlug)
     .single();
   
   if (productError) {
@@ -84,19 +103,25 @@ export const fetchProductById = async (id: string): Promise<(Product & { images:
     return null;
   }
   
-  if (!product) return null;
+  if (!product) {
+    console.log('Product not found for:', idOrSlug);
+    return null;
+  }
+  
+  console.log('Product found:', product);
   
   // Fetch images for the product
   const { data: images, error: imagesError } = await supabase
     .from('product_images')
     .select('*')
-    .eq('product_id', id);
+    .eq('product_id', product.id);
   
   if (imagesError) {
     console.error('Error fetching product images:', imagesError);
     return { ...product, images: [] };
   }
   
+  console.log('Product images found:', images?.length || 0);
   return { ...product, images: images || [] };
 };
 
