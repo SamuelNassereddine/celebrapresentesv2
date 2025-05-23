@@ -12,10 +12,8 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, title, price, imageUrl, slug }: ProductCardProps) => {
   return (
--   <Link
--     to={`/product/${id}`}
-+   <Link
-+     to={`/product/${slug}`}
+    <Link
+      to={`/product/${slug}`}
       className="block group focus:outline-none"
       tabIndex={0}
       aria-label={`Ver detalhes de ${title}`}
