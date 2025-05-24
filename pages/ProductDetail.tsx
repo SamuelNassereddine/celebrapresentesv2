@@ -14,7 +14,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import React from 'react';
-import FixedActionBar from '@/components/Common/FixedActionBar';
+import FixedActionBarProduct from '@/components/Common/FixedActionBarProduct';
 
 type ProductWithImages = Database['public']['Tables']['products']['Row'] & { 
   images: Database['public']['Tables']['product_images']['Row'][] 
@@ -194,7 +194,7 @@ const ProductDetail = () => {
       </div>
       
       {/* Botão fixo mobile */}
-      <FixedActionBar
+      <FixedActionBarProduct
         total={total}
         quantity={quantity}
         buttonLabel="Adicionar ao Carrinho"
