@@ -119,7 +119,7 @@ const Cart = () => {
                 <div className="flex justify-center" style={{ flex: '0 0 15%' }}>
                   <Button
                     size="sm"
-                    className="w-8 h-8 p-0 bg-[#f5c6d0] text-[#a62c47] rounded-full hover:bg-[#f5c6d0]/80 flex items-center justify-center"
+                    className="w-8 h-8 p-0 text-[#B40206] rounded-full flex items-center justify-center"
                     onClick={() => {
                       addItem({
                         id: `special-${item.id}`,

@@ -24,8 +24,8 @@ const FixedActionBar: React.FC<FixedActionBarProps> = ({
       <div>
         <div className="font-semibold text-gray-800 text-base">Resumo do Pedido</div>
         <div className="text-sm text-gray-600">
-          Total do pedido:{" "}
-          <span className="font-bold text-lg text-[#a62c47]">
+          Total:{" "}
+          <span className="font-bold text-lg text-[#000000]">
             {new Intl.NumberFormat("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -39,7 +39,7 @@ const FixedActionBar: React.FC<FixedActionBarProps> = ({
         </div>
       </div>
       <Button
-        className="min-w-[130px] h-12 px-6 bg-[#f5c6d0] text-[#a62c47] font-bold text-base rounded-full"
+        className="min-w-[180px] h-12 px-6 bg-[#B40206] text-[#ffffff] font-bold text-base rounded-md"
         onClick={onButtonClick}
         disabled={loading || disabled}
       >

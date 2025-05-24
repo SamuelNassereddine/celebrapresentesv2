@@ -187,7 +187,7 @@ const ProductDetail = () => {
               variant="default"
               className="hidden md:block w-full md:w-auto md:px-16 btn-primary"
             >
-              Adicionar ao Carrinho
+              Adicionar à Sacola
             </Button>
           </div>
         </div>
@@ -197,7 +197,7 @@ const ProductDetail = () => {
       <FixedActionBarProduct
         total={total}
         quantity={quantity}
-        buttonLabel="Adicionar ao Carrinho"
+        buttonLabel="Adicionar à Sacola"
         onButtonClick={handleAddToCart}
       />
       <ProductAddedNotification />
