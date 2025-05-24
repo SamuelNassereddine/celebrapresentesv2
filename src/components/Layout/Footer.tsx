@@ -139,7 +139,7 @@ const Footer = () => {
                     rel="noopener noreferrer"
                     className="hover:text-primary-foreground ml-1"
                   >
-                    {settings.whatsapp_number.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '+$1 ($2) $3-$4')}
+                    {settings.whatsapp_number.replace(/(\d{2})(\d{2})(\d{5})(\d{4})/, '$1 ($2) $3-$4')}
                   </a>
                 </li>
               )}

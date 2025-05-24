@@ -59,7 +59,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white shadow-sm" style={{ paddingTop: '40px' }}>
 
  {/* Top Pink Reference Bar */}
- <div className="w-full bg-[#C72C4B] flex justify-center items-center py-1 px-2 fixed top-0 left-0 right-0 z-50 border-b border-[#a62c47]/10">
+ <div className="w-full bg-[#5E0102] flex justify-center items-center py-1 px-2 fixed top-0 left-0 right-0 z-50 border-b border-[#a62c47]/10">
         <div className="flex items-center gap-1 text-[#a62c47] font-semibold text-sm md:text-base tracking-wide select-none">
           <span className="flex text-yellow-400 mr-2">
             {Array(5)
