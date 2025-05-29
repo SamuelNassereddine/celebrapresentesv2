@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import AdminLayout from '../AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,9 +77,23 @@ const CalendarView = () => {
     });
   };
 
-  // Format date in PT-BR
-  const formatDateBR = (date: Date) => {
-    return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  // Format date in PT-BR - corrigindo problema de timezone
+  const formatDateBR = (date: Date | string) => {
+    if (typeof date === 'string') {
+      // Se é uma string no formato YYYY-MM-DD, converter diretamente
+      if (date.includes('-') && date.length === 10) {
+        const [year, month, day] = date.split('-');
+        const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        return format(dateObj, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+      }
+    }
+    
+    // Para objetos Date normais
+    if (date instanceof Date) {
+      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    }
+    
+    return format(new Date(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
   const formatOrderStatus = (status: string) => {
@@ -185,13 +198,12 @@ const CalendarView = () => {
                   
                   // Count orders for this date
                   const dateOrders = orders.filter(order => order.delivery_date === dateStr);
-                  const date = new Date(dateStr);
                   
                   return (
                     <div key={dateStr} className="border rounded-lg p-4 hover:bg-gray-50">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-medium">{formatDateBR(date)}</h3>
+                          <h3 className="font-medium">{formatDateBR(dateStr)}</h3>
                           <p className="text-sm text-gray-500">
                             {dateOrders.length} {dateOrders.length === 1 ? 'pedido' : 'pedidos'}
                           </p>
@@ -199,7 +211,16 @@ const CalendarView = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => openDetails(date)}
+                          onClick={() => {
+                            // Criar um objeto Date corretamente a partir da string
+                            if (dateStr.includes('-') && dateStr.length === 10) {
+                              const [year, month, day] = dateStr.split('-');
+                              const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                              openDetails(date);
+                            } else {
+                              openDetails(new Date(dateStr));
+                            }
+                          }}
                         >
                           Ver Detalhes
                         </Button>

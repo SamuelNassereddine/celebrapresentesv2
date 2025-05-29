@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -123,6 +122,14 @@ const OrderDetail = () => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     try {
+      // Corrigir formatação de data para evitar problemas de timezone
+      // Se a data está no formato YYYY-MM-DD, usar diretamente sem conversão de timezone
+      if (dateString.includes('-') && dateString.length === 10) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Fallback para outras strings de data
       return format(new Date(dateString), 'dd/MM/yyyy');
     } catch (e) {
       return dateString;
