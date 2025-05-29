@@ -1,15 +1,17 @@
-
 import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/context/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
+import { saveOrderItems } from '@/utils/orderUtils';
 
 const IdentificationStep = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { items, totalPrice } = useCart();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -91,7 +93,8 @@ const IdentificationStep = () => {
           .update({
             customer_name: formData.name,
             customer_phone: formData.phone,
-            customer_email: formData.email || null
+            customer_email: formData.email || null,
+            total_price: totalPrice // Atualizar preço total com base no carrinho
           })
           .eq('id', orderId);
           
@@ -125,7 +128,7 @@ const IdentificationStep = () => {
             customer_phone: formData.phone,
             customer_email: formData.email || null,
             status: 'pending',
-            total_price: 0, // Será atualizado nas próximas etapas
+            total_price: totalPrice, // Definir preço total com base no carrinho
             order_number: orderNumber
           });
           
@@ -189,11 +192,37 @@ const IdentificationStep = () => {
       setIsSubmitting(false);
       return;
     }
+
+    // Verificar se há itens no carrinho
+    if (items.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Carrinho vazio",
+        description: "Adicione produtos ao carrinho antes de continuar.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     // Criar ou atualizar pedido no banco
     const newOrderId = await createOrUpdateOrder();
     
     if (newOrderId) {
+      console.log('IdentificationStep - Saving cart items to database');
+      
+      // Salvar itens do carrinho no banco de dados
+      const itemsSaved = await saveOrderItems(newOrderId, items);
+      
+      if (!itemsSaved) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao salvar produtos",
+          description: "Não foi possível salvar os produtos do carrinho.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Armazenar o ID do pedido para uso nas próximas etapas
       console.log('IdentificationStep - Saving order ID to localStorage:', newOrderId);
       localStorage.setItem('currentOrderId', newOrderId);
@@ -206,7 +235,7 @@ const IdentificationStep = () => {
       // Notificar sucesso
       toast({
         title: "Dados salvos com sucesso!",
-        description: "Vamos para a próxima etapa.",
+        description: "Produtos adicionados ao pedido. Vamos para a próxima etapa.",
       });
       
       // Navegar para a próxima etapa

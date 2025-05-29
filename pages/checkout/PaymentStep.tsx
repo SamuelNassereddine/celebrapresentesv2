@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CheckoutSteps from '@/components/Checkout/CheckoutSteps';
@@ -10,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchStoreSettings } from '@/services/api';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { saveOrderItems } from '@/utils/orderUtils';
 
 const PaymentStep = () => {
   const navigate = useNavigate();
@@ -252,7 +252,7 @@ const PaymentStep = () => {
       setError(null);
       console.log('PaymentStep - Starting WhatsApp checkout process');
       
-      // Atualizar o preço final do pedido e adicionar os itens
+      // Atualizar o preço final do pedido
       console.log('PaymentStep - Updating final price:', totalPrice);
       const { error: updateError } = await supabase
         .from('orders')
@@ -266,12 +266,12 @@ const PaymentStep = () => {
         return;
       }
       
-      // Adicionar os itens do pedido
-      console.log('PaymentStep - Adding order items');
-      const itemsAdded = await addOrderItems();
-      if (!itemsAdded) {
-        console.error('PaymentStep - Failed to add items');
-        setError('Erro ao adicionar itens ao pedido. Tente novamente.');
+      // Sincronizar os itens do pedido (caso o carrinho tenha sido modificado após step 1)
+      console.log('PaymentStep - Syncing order items');
+      const itemsSynced = await saveOrderItems(orderId, items);
+      if (!itemsSynced) {
+        console.error('PaymentStep - Failed to sync items');
+        setError('Erro ao sincronizar itens do pedido. Tente novamente.');
         setIsSubmitting(false);
         return;
       }
