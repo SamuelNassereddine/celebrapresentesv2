@@ -277,7 +277,7 @@ const OrderDetail = () => {
                   <p className="text-gray-600">
                     Data do pedido: {formatDate(order.created_at)}<br />
                     {order.delivery_date && (
-                      <>Data de entrega: (order.delivery_date)</>
+                      <>Data de entrega: {(order.delivery_date)}</>
                     )}
                     {timeSlot && (
                       <>
