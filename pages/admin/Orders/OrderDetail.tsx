@@ -277,7 +277,7 @@ const OrderDetail = () => {
                   <p className="text-gray-600">
                     Data do pedido: {formatDate(order.created_at)}<br />
                     {order.delivery_date && (
-                      <>Data de entrega: {order.delivery_date.split('-').reverse().join('/')}</>
+                      <>Data de entrega: {new Date(order.delivery_date + 'T00:00:00').toLocaleDateString('pt-BR')}</>
                     )}
                     {timeSlot && (
                       <>
