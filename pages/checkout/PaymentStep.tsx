@@ -169,7 +169,7 @@ const PaymentStep = () => {
     message += `CEP: ${orderData.address_zipcode}\n`;
     
     // Delivery time
-    message += `Data de entrega: ${new Date(orderData.delivery_date).toLocaleDateString('pt-BR')}\n`;
+    message += `Data de entrega: ${new Date(orderData.delivery_date + 'T00:00:00').toLocaleDateString('pt-BR')}\n`;
     
     // Message
     if (orderData.personalization_text) {
