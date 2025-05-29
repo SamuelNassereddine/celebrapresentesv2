@@ -259,22 +259,20 @@ const DeliveryStep = () => {
     if (!orderId) return false;
     
     try {
-      // Abordagem diferente para garantir a data correta
-      // 1. Obtenha a data selecionada
+      // Conversão correta da data - manter a data selecionada sem alterações
+      // Converte para formato ISO preservando a data local selecionada
       const deliveryDate = new Date(formData.deliveryDate);
       
-      // 2. Crie uma string de data no formato ISO, mas manipule manualmente para garantir que seja o dia correto
-      // Use o offset +24 horas (1 dia) para compensar qualquer problema de conversão de fuso horário
+      // Criar uma string de data no formato YYYY-MM-DD preservando a data selecionada
       const year = deliveryDate.getFullYear();
       const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
-      const day = String(deliveryDate.getDate() + 1).padStart(2, '0'); // Adicionando +1 ao dia para compensar
+      const day = String(deliveryDate.getDate()).padStart(2, '0');
       
-      // 3. Crie uma string de data no formato ISO
-      // Use T12:00:00Z para definir o meio-dia em UTC
-      const dateString = `${year}-${month}-${day}T12:00:00Z`;
+      // Formato de data correto sem alterações de timezone
+      const dateString = `${year}-${month}-${day}`;
       
       console.log('Data selecionada original:', formData.deliveryDate);
-      console.log('Data ajustada que será salva:', dateString);
+      console.log('Data que será salva:', dateString);
       
       const { error } = await supabase
         .from('orders')
@@ -290,7 +288,7 @@ const DeliveryStep = () => {
           address_city: formData.city,
           address_state: formData.state,
           address_zipcode: formData.cep,
-          delivery_date: dateString, // Usando a string de data ajustada manualmente
+          delivery_date: dateString, // Usando a data correta sem modificações
           delivery_time_slot_id: formData.deliveryTimeSlot
         })
         .eq('id', orderId);
