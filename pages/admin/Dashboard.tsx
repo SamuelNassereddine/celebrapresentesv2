@@ -12,11 +12,11 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-pulse">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 animate-pulse">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
           ))}
@@ -26,13 +26,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
       </div>
 
       {/* Main KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <MetricsCard
           title="Pedidos Totais"
           value={data.orderCount}
@@ -71,14 +71,14 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Charts Section - Responsive layout */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         <SalesChart data={data.salesData} />
         <OrdersStatus data={data.ordersStatus} />
       </div>
 
-      {/* Additional Insights */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Additional Insights - Responsive layout */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         <TopProducts products={data.topProducts} />
         <UpcomingDeliveries deliveries={data.upcomingDeliveries} />
       </div>
